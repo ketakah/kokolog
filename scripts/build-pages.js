@@ -12,7 +12,7 @@ const files = [
   'sw.js',
 ];
 const directories = [
-  'assets\\icons',
+  'assets/icons',
   'icons',
   'src',
   'styles',
