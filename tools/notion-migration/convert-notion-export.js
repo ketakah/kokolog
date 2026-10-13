@@ -496,8 +496,8 @@ function createReportHtml(result) {
       --cp-panel-strong: rgba(255, 255, 255, 0.96);
       --cp-sheen: rgba(255, 255, 255, 0.55);
       --cp-highlight: rgba(177, 31, 75, 0.12);
-      --cp-app-accent: #31c9c2;
-      --cp-app-accent-soft: rgba(49, 201, 194, 0.18);
+      --cp-app-accent: #347da5;
+      --cp-app-accent-soft: rgba(52, 125, 165, 0.12);
     }
     html[data-theme="dark"] {
       color-scheme: dark;
@@ -524,8 +524,8 @@ function createReportHtml(result) {
       --cp-panel-strong: rgba(41, 41, 41, 0.96);
       --cp-sheen: rgba(255, 255, 255, 0.04);
       --cp-highlight: rgba(253, 142, 161, 0.12);
-      --cp-app-accent: #31c9c2;
-      --cp-app-accent-soft: rgba(49, 201, 194, 0.2);
+      --cp-app-accent: #86c7e5;
+      --cp-app-accent-soft: rgba(134, 199, 229, 0.18);
     }
     * { box-sizing: border-box; }
     body {
