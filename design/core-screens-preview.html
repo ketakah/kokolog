@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ここログ 主要画面案</title>
+  <script>
+    (() => {
+      const param = new URLSearchParams(window.location.search).get("scoutTheme");
+      const theme =
+        param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <style>
+    :root {
+      color-scheme: light;
+      --cp-bg: #f7f4ef;
+      --cp-bg-elevated: #fcfbf8;
+      --cp-surface: #ffffff;
+      --cp-surface-soft: #f5f5f5;
+      --cp-border: #dedede;
+      --cp-border-strong: #919191;
+      --cp-text: #242424;
+      --cp-text-muted: #5c5c5c;
+      --cp-text-soft: #6f6f6f;
+      --cp-accent: #b11f4b;
+      --cp-accent-hover: #9a1a41;
+      --cp-accent-soft: rgba(177, 31, 75, 0.08);
+      --cp-accent-fg: #ffffff;
+      --cp-success: #16a34a;
+      --cp-danger: #dc2626;
+      --cp-warning: #f59e0b;
+      --cp-link: #0078d4;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+      --cp-overlay: rgba(255, 255, 255, 0.8);
+      --cp-panel: rgba(255, 255, 255, 0.86);
+      --cp-panel-strong: rgba(255, 255, 255, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.55);
+      --cp-highlight: rgba(177, 31, 75, 0.12);
+      --cp-face-contrast: #ffffff;
+      --cp-app-accent: #397b91;
+      --cp-app-accent-hover: #30697d;
+      --cp-app-accent-soft: rgba(57, 123, 145, 0.1);
+      --cp-app-accent-fg: #ffffff;
+      --cp-mood-1: #919191;
+      --cp-mood-2: #8c969b;
+      --cp-mood-3: #708994;
+      --cp-mood-4: #56839f;
+      --cp-mood-5: #2587ca;
+    }
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --cp-bg: #3d3b3a;
+      --cp-bg-elevated: #343231;
+      --cp-surface: #292929;
+      --cp-surface-soft: #2e2e2e;
+      --cp-border: #474747;
+      --cp-border-strong: #5f5f5f;
+      --cp-text: #dedede;
+      --cp-text-muted: #919191;
+      --cp-text-soft: #b0b0b0;
+      --cp-accent: #fd8ea1;
+      --cp-accent-hover: #fb7b91;
+      --cp-accent-soft: rgba(253, 142, 161, 0.14);
+      --cp-accent-fg: #1a1a1a;
+      --cp-success: #4ade80;
+      --cp-danger: #f87171;
+      --cp-warning: #fbbf24;
+      --cp-link: #4da6ff;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+      --cp-overlay: rgba(41, 41, 41, 0.88);
+      --cp-panel: rgba(41, 41, 41, 0.72);
+      --cp-panel-strong: rgba(41, 41, 41, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.04);
+      --cp-highlight: rgba(253, 142, 161, 0.12);
+      --cp-face-contrast: #ffffff;
+      --cp-app-accent: #78b9d0;
+      --cp-app-accent-hover: #91c9dc;
+      --cp-app-accent-soft: rgba(120, 185, 208, 0.16);
+      --cp-app-accent-fg: #13252b;
+      --cp-mood-1: #6f6f6f;
+      --cp-mood-2: #9ca4a8;
+      --cp-mood-3: #8ca3ae;
+      --cp-mood-4: #78abc4;
+      --cp-mood-5: #72c9f3;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--cp-bg);
+      color: var(--cp-text);
+      font-family: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+    button {
+      border: 0;
+    }
+    .page {
+      width: min(1240px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+    .page > h1 {
+      margin: 0 0 8px;
+      font-size: 2rem;
+      letter-spacing: -.04em;
+    }
+    .lead {
+      max-width: 760px;
+      margin: 0 0 28px;
+      color: var(--cp-text-muted);
+      line-height: 1.7;
+    }
+    .screens {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    .screen-wrap h2 {
+      margin: 0 0 10px;
+      font-size: .9rem;
+      font-weight: 700;
+      text-align: center;
+    }
+    .phone {
+      position: relative;
+      min-height: 760px;
+      overflow: hidden;
+      border: 1px solid var(--cp-border-strong);
+      border-radius: 16px;
+      background: var(--cp-bg-elevated);
+      box-shadow: 0 0 2px var(--cp-border), 0 1px 2px var(--cp-border);
+    }
+    .status {
+      height: 18px;
+      background: var(--cp-surface);
+    }
+    .nav {
+      display: grid;
+      min-height: 48px;
+      grid-template-columns: 68px 1fr 68px;
+      align-items: center;
+      border-bottom: 1px solid var(--cp-border);
+      background: var(--cp-surface);
+    }
+    .nav h3 {
+      margin: 0;
+      overflow: hidden;
+      font-size: .98rem;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .nav button {
+      min-height: 44px;
+      padding: 0 10px;
+      background: transparent;
+      color: var(--cp-app-accent);
+    }
+    .nav button:first-child {
+      text-align: left;
+    }
+    .nav button:last-child {
+      font-weight: 700;
+      text-align: right;
+    }
+    .content {
+      padding: 14px 12px 88px;
+    }
+    .day-summary {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid var(--cp-border);
+      border-radius: 16px;
+      background: var(--cp-surface);
+    }
+    .day-summary svg {
+      width: 42px;
+      height: 42px;
+      color: var(--cp-app-accent);
+    }
+    .day-summary strong,
+    .day-summary span {
+      display: block;
+    }
+    .day-summary strong {
+      font-size: 1.05rem;
+    }
+    .day-summary span {
+      margin-top: 3px;
+      color: var(--cp-text-muted);
+      font-size: .72rem;
+    }
+    .day-summary .count {
+      text-align: right;
+    }
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 18px 4px 8px;
+      color: var(--cp-text-muted);
+      font-size: .72rem;
+      font-weight: 700;
+    }
+    .record-card {
+      position: relative;
+      margin-top: 9px;
+      padding: 14px 42px 13px 14px;
+      border: 1px solid var(--cp-border);
+      border-radius: 16px;
+      background: var(--cp-surface);
+    }
+    .record-card .meta {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 7px;
+      color: var(--cp-text-muted);
+      font-size: .68rem;
+    }
+    .record-card .meta svg {
+      width: 19px;
+      height: 19px;
+    }
+    .record-card h4 {
+      margin: 0 0 5px;
+      font-size: .9rem;
+    }
+    .record-card p {
+      display: -webkit-box;
+      margin: 0;
+      overflow: hidden;
+      color: var(--cp-text-soft);
+      font-size: .78rem;
+      line-height: 1.55;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 4;
+    }
+    .star {
+      position: absolute;
+      top: 9px;
+      right: 8px;
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      background: transparent;
+      color: var(--cp-text-muted);
+      font-size: 1.4rem;
+    }
+    .star.on {
+      color: var(--cp-app-accent);
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 9px;
+    }
+    .chip {
+      display: inline-flex;
+      min-height: 24px;
+      align-items: center;
+      padding: 0 8px;
+      border-radius: 0.625rem;
+      background: var(--cp-surface-soft);
+      color: var(--cp-text-soft);
+      font-size: .66rem;
+    }
+    .primary-float {
+      position: absolute;
+      right: 14px;
+      bottom: 16px;
+      min-height: 46px;
+      padding: 0 18px;
+      border-radius: 0.625rem;
+      background: var(--cp-app-accent);
+      color: var(--cp-app-accent-fg);
+      box-shadow: 0 0 2px var(--cp-border-strong), 0 1px 2px var(--cp-border-strong);
+      font-weight: 700;
+    }
+    .editor {
+      padding: 14px 14px 60px;
+    }
+    .date-button {
+      display: inline-flex;
+      min-height: 34px;
+      align-items: center;
+      gap: 6px;
+      padding: 0 10px;
+      border: 1px solid var(--cp-border);
+      border-radius: 0.625rem;
+      background: var(--cp-surface);
+      color: var(--cp-text-soft);
+      font-size: .75rem;
+    }
+    .title-field,
+    .body-field {
+      width: 100%;
+      border: 1px solid var(--cp-border);
+      border-radius: 0.625rem;
+      outline: 0;
+      background: var(--cp-surface);
+      color: var(--cp-text);
+    }
+    .title-field {
+      margin-top: 12px;
+      padding: 12px;
+      border-color: var(--cp-app-accent);
+      font-size: 1rem;
+      font-weight: 700;
+      box-shadow: 0 0 0 2px var(--cp-app-accent-soft);
+    }
+    .optional-title {
+      display: inline-flex;
+      min-height: 34px;
+      align-items: center;
+      margin-top: 10px;
+      padding: 0 2px;
+      background: transparent;
+      color: var(--cp-app-accent);
+      font-size: .73rem;
+      font-weight: 700;
+    }
+    .field-label {
+      display: block;
+      margin: 17px 2px 7px;
+      color: var(--cp-text-muted);
+      font-size: .7rem;
+      font-weight: 700;
+    }
+    .mood-picker {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+    .mood-option {
+      display: grid;
+      min-height: 62px;
+      place-items: center;
+      align-content: center;
+      gap: 4px;
+      padding: 6px 2px;
+      border: 1px solid var(--cp-border);
+      border-radius: 0.625rem;
+      background: var(--cp-surface);
+      color: var(--cp-text-muted);
+    }
+    .mood-option.level-2 {
+      color: var(--cp-mood-2);
+    }
+    .mood-option.level-3 {
+      color: var(--cp-mood-3);
+    }
+    .mood-option.level-4 {
+      color: var(--cp-mood-4);
+    }
+    .mood-option.level-5 {
+      color: var(--cp-mood-5);
+    }
+    .mood-option.selected {
+      border-color: var(--cp-app-accent);
+      background: var(--cp-app-accent-soft);
+      box-shadow: inset 0 0 0 1px var(--cp-app-accent);
+    }
+    .mood-option svg {
+      width: 28px;
+      height: 28px;
+    }
+    .mood-option small {
+      font-size: .58rem;
+      font-weight: 700;
+    }
+    .body-field {
+      min-height: 230px;
+      padding: 12px;
+      resize: none;
+      line-height: 1.65;
+    }
+    .body-field.focused {
+      border-color: var(--cp-app-accent);
+      box-shadow: 0 0 0 2px var(--cp-app-accent-soft);
+    }
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 12px;
+    }
+    .tag-add {
+      min-height: 32px;
+      padding: 0 10px;
+      border: 1px dashed var(--cp-border-strong);
+      border-radius: 0.625rem;
+      background: transparent;
+      color: var(--cp-app-accent);
+      font-size: .72rem;
+      font-weight: 700;
+    }
+    .draft-status {
+      margin-top: 14px;
+      color: var(--cp-text-muted);
+      font-size: .68rem;
+      text-align: center;
+    }
+    .timeline {
+      padding-bottom: 68px;
+    }
+    .search-area {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      padding: 10px 12px 8px;
+      border-bottom: 1px solid var(--cp-border);
+      background: var(--cp-panel-strong);
+    }
+    .search-row {
+      display: grid;
+      grid-template-columns: 1fr 42px;
+      gap: 8px;
+    }
+    .search-box {
+      display: flex;
+      min-height: 40px;
+      align-items: center;
+      gap: 7px;
+      padding: 0 11px;
+      border: 1px solid var(--cp-border);
+      border-radius: 0.625rem;
+      background: var(--cp-surface);
+      color: var(--cp-text-muted);
+      font-size: .78rem;
+    }
+    .filter-button {
+      border: 1px solid var(--cp-border);
+      border-radius: 0.625rem;
+      background: var(--cp-surface);
+      color: var(--cp-app-accent);
+      font-size: 1.1rem;
+    }
+    .active-filters {
+      display: flex;
+      gap: 5px;
+      margin-top: 7px;
+      overflow: hidden;
+    }
+    .active-filters .chip {
+      flex: none;
+      background: var(--cp-app-accent-soft);
+      color: var(--cp-app-accent);
+    }
+    .timeline-body {
+      padding: 10px 12px 142px;
+    }
+    .timeline .primary-float {
+      bottom: 68px;
+    }
+    .timeline-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 4px 2px 8px;
+      color: var(--cp-text-muted);
+      font-size: .7rem;
+    }
+    .tabs {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: grid;
+      height: 58px;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid var(--cp-border);
+      background: var(--cp-panel-strong);
+    }
+    .tab {
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 2px;
+      background: transparent;
+      color: var(--cp-text-muted);
+      font-size: .6rem;
+    }
+    .tab.active {
+      color: var(--cp-app-accent);
+      font-weight: 700;
+    }
+    .tab svg {
+      width: 21px;
+      height: 21px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    @media (max-width: 1060px) {
+      .screens {
+        grid-template-columns: repeat(2, minmax(320px, 1fr));
+      }
+    }
+    @media (max-width: 710px) {
+      .page {
+        width: min(100% - 24px, 390px);
+        padding-top: 22px;
+      }
+      .screens {
+        grid-template-columns: 1fr;
+      }
+      .phone {
+        min-height: 720px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" aria-hidden="true">
+    <defs>
+      <symbol id="mood-1" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10.4" fill="var(--cp-mood-1)"/>
+        <path d="M8.3 10.2 10.4 11.9 8.3 13.6M15.7 10.2 13.6 11.9 15.7 13.6" fill="none" stroke="var(--cp-face-contrast)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M10.1 16.9h3.8" fill="none" stroke="var(--cp-face-contrast)" stroke-width="1.3" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="mood-2" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9.4" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <circle cx="9.4" cy="10.6" r="1.37" fill="currentColor"/><circle cx="14.6" cy="10.6" r="1.37" fill="currentColor"/>
+        <path d="M9.2 15.5q2.8-2.7 5.6 0" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="mood-3" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9.4" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <circle cx="9.4" cy="10.6" r="1.37" fill="currentColor"/><circle cx="14.6" cy="10.6" r="1.37" fill="currentColor"/>
+        <path d="M9.6 15.2h4.8" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="mood-4" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9.4" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <circle cx="9.4" cy="10.6" r="1.37" fill="currentColor"/><circle cx="14.6" cy="10.6" r="1.37" fill="currentColor"/>
+        <path d="M9.2 13.8q2.8 2.7 5.6 0" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="mood-5" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9.4" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <path d="M8.1 11q1.3-1.7 2.6 0M13.3 11q1.3-1.7 2.6 0" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M8.8 13.6q3.2 3.7 6.4 0" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <main class="page">
+    <h1>ここログ 主要画面案</h1>
+    <p class="lead">ホームのタイムライン、本文を主入力にした新規作成、カレンダーから開く日別一覧を並べています。</p>
+
+    <div class="screens">
+      <section class="screen-wrap">
+        <h2>1. 日別一覧</h2>
+        <div class="phone">
+          <div class="status"></div>
+          <header class="nav">
+            <button type="button">‹ 戻る</button>
+            <h3>10月11日（日）</h3>
+            <span></span>
+          </header>
+          <div class="content">
+            <section class="day-summary">
+              <svg style="color:var(--cp-mood-4)" viewBox="0 0 24 24" aria-label="平均はいい感じ"><use href="#mood-4"/></svg>
+              <div><strong>平均 3.5</strong><span>調子を入力した投稿 2件</span></div>
+              <div class="count"><strong>2件</strong><span>投稿</span></div>
+            </section>
+
+            <div class="section-title"><span>朝から夜の順</span><span>2件</span></div>
+
+            <article class="record-card">
+              <button class="star" type="button" aria-label="お気に入りに追加">☆</button>
+              <div class="meta"><svg style="color:var(--cp-mood-2)" viewBox="0 0 24 24" aria-label="落ち気味"><use href="#mood-2"/></svg><span>09:20</span></div>
+              <h4>朝から少し落ち着かない</h4>
+              <p>仕事のことが頭から離れず、起きた時から少し重たい。何が不安なのかを書き出してみると、午後の打ち合わせの準備が十分ではないと感じているようだ。</p>
+              <div class="chips"><span class="chip">仕事</span><span class="chip">不安</span></div>
+            </article>
+
+            <article class="record-card">
+              <button class="star on" type="button" aria-label="お気に入りから外す">★</button>
+              <div class="meta"><svg style="color:var(--cp-mood-5)" viewBox="0 0 24 24" aria-label="絶好調"><use href="#mood-5"/></svg><span>21:45</span></div>
+              <h4>話してみたら気持ちが軽くなった</h4>
+              <p>一人で考え続けるより、言葉にして誰かに話すだけで見え方が変わった。問題が全部なくなったわけではないけれど、明日やることは整理できた。</p>
+              <div class="chips"><span class="chip">気づき</span></div>
+            </article>
+          </div>
+          <button class="primary-float" type="button">＋ この日に記録</button>
+        </div>
+      </section>
+
+      <section class="screen-wrap">
+        <h2>2. 新しい記録</h2>
+        <div class="phone">
+          <div class="status"></div>
+          <header class="nav">
+            <button type="button">閉じる</button>
+            <h3>新しい記録</h3>
+            <button type="button">保存</button>
+          </header>
+          <div class="editor">
+            <button class="date-button" type="button">2026/10/11 22:10　›</button>
+            <button class="optional-title" type="button">＋ タイトルを付ける</button>
+
+            <label class="field-label" for="body-text">本文</label>
+            <textarea class="body-field focused" id="body-text" autofocus>言葉にしてみると、考えていたよりも単純なことで悩んでいたことに気づいた。</textarea>
+
+            <span class="field-label">調子（任意）</span>
+            <div class="mood-picker">
+              <button class="mood-option level-1" type="button" aria-label="どん底"><svg viewBox="0 0 24 24"><use href="#mood-1"/></svg><small>どん底</small></button>
+              <button class="mood-option level-2" type="button" aria-label="落ち気味"><svg viewBox="0 0 24 24"><use href="#mood-2"/></svg><small>落ち気味</small></button>
+              <button class="mood-option level-3" type="button" aria-label="普通"><svg viewBox="0 0 24 24"><use href="#mood-3"/></svg><small>普通</small></button>
+              <button class="mood-option level-4 selected" type="button" aria-label="いい感じ"><svg viewBox="0 0 24 24"><use href="#mood-4"/></svg><small>いい感じ</small></button>
+              <button class="mood-option level-5" type="button" aria-label="絶好調"><svg viewBox="0 0 24 24"><use href="#mood-5"/></svg><small>絶好調</small></button>
+            </div>
+            <button class="tag-add" type="button">選択を解除</button>
+
+            <div class="tag-row">
+              <span class="chip">気づき　×</span>
+              <button class="tag-add" type="button">＋ タグを追加</button>
+            </div>
+            <div class="draft-status">下書き保存済み</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen-wrap">
+        <h2>3. タイムライン兼検索</h2>
+        <div class="phone timeline">
+          <div class="status"></div>
+          <header class="nav">
+            <span></span>
+            <h3>タイムライン</h3>
+            <button type="button">新しい順</button>
+          </header>
+          <div class="search-area">
+            <div class="search-row">
+              <div class="search-box">⌕　タイトル・本文を検索</div>
+              <button class="filter-button" type="button" aria-label="絞り込み">≡</button>
+            </div>
+            <div class="active-filters">
+              <span class="chip">調子 1〜3　×</span>
+              <span class="chip">仕事 AND 不安　×</span>
+            </div>
+          </div>
+          <div class="timeline-body">
+            <div class="timeline-head"><strong>2026年10月11日</strong><span>2件</span></div>
+            <article class="record-card">
+              <button class="star" type="button" aria-label="お気に入りに追加">☆</button>
+              <div class="meta"><svg style="color:var(--cp-mood-2)" viewBox="0 0 24 24" aria-label="落ち気味"><use href="#mood-2"/></svg><span>09:20</span></div>
+              <h4>朝から少し落ち着かない</h4>
+              <p>仕事のことが頭から離れず、起きた時から少し重たい。何が不安なのかを書き出してみると、午後の打ち合わせの準備が十分ではないと感じているようだ。</p>
+              <div class="chips"><span class="chip">仕事</span><span class="chip">不安</span></div>
+            </article>
+            <div class="timeline-head"><strong>2026年10月5日</strong><span>1件</span></div>
+            <article class="record-card">
+              <button class="star on" type="button" aria-label="お気に入りから外す">★</button>
+              <div class="meta"><svg style="color:var(--cp-mood-3)" viewBox="0 0 24 24" aria-label="普通"><use href="#mood-3"/></svg><span>18:30</span></div>
+              <h4>一度立ち止まる</h4>
+              <p>焦って決めず、明日の朝にもう一度考えることにした。</p>
+              <div class="chips"><span class="chip">仕事</span><span class="chip">不安</span></div>
+            </article>
+          </div>
+          <button class="primary-float" type="button">＋ 今を記録</button>
+          <nav class="tabs" aria-label="主要画面">
+            <button class="tab active" type="button">
+              <svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>
+              <span>タイムライン</span>
+            </button>
+            <button class="tab" type="button">
+              <svg viewBox="0 0 24 24"><path d="M5 4.5h14a2 2 0 0 1 2 2V20H3V6.5a2 2 0 0 1 2-2ZM7 2v5M17 2v5M3 9h18"/></svg>
+              <span>カレンダー</span>
+            </button>
+            <button class="tab" type="button">
+              <svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V4M16 19v-7M22 19V7"/></svg>
+              <span>統計</span>
+            </button>
+            <button class="tab" type="button">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5"/><path d="m19.4 13.5 2-1.5-2.4-4.2-2.3.9a7 7 0 0 0-1.5-.8L14.8 5h-5.6l-.4 2.9q-.8.3-1.5.8L5 7.8 2.6 12l2 1.5a7 7 0 0 0 0 1L2.6 16 5 20.2l2.3-.9q.7.5 1.5.8l.4 2.9h5.6l.4-2.9q.8-.3 1.5-.8l2.3.9 2.4-4.2-2-1.5a7 7 0 0 0 0-1Z"/></svg>
+              <span>設定</span>
+            </button>
+          </nav>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

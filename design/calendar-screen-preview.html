@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ここログ カレンダー画面案</title>
+  <script>
+    (() => {
+      const param = new URLSearchParams(window.location.search).get("scoutTheme");
+      const theme =
+        param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <style>
+    :root {
+      color-scheme: light;
+      --cp-bg: #f7f4ef;
+      --cp-bg-elevated: #fcfbf8;
+      --cp-surface: #ffffff;
+      --cp-surface-soft: #f5f5f5;
+      --cp-border: #dedede;
+      --cp-border-strong: #919191;
+      --cp-text: #242424;
+      --cp-text-muted: #5c5c5c;
+      --cp-text-soft: #6f6f6f;
+      --cp-accent: #b11f4b;
+      --cp-accent-hover: #9a1a41;
+      --cp-accent-soft: rgba(177, 31, 75, 0.08);
+      --cp-accent-fg: #ffffff;
+      --cp-success: #16a34a;
+      --cp-danger: #dc2626;
+      --cp-warning: #f59e0b;
+      --cp-link: #0078d4;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+      --cp-overlay: rgba(255, 255, 255, 0.8);
+      --cp-panel: rgba(255, 255, 255, 0.86);
+      --cp-panel-strong: rgba(255, 255, 255, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.55);
+      --cp-highlight: rgba(177, 31, 75, 0.12);
+      --cp-face-contrast: #ffffff;
+      --cp-app-accent: #397b91;
+      --cp-app-accent-hover: #30697d;
+      --cp-app-accent-soft: rgba(57, 123, 145, 0.1);
+      --cp-app-accent-fg: #ffffff;
+      --cp-mood-1: #919191;
+      --cp-mood-2: #8c969b;
+      --cp-mood-3: #708994;
+      --cp-mood-4: #56839f;
+      --cp-mood-5: #2587ca;
+    }
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --cp-bg: #3d3b3a;
+      --cp-bg-elevated: #343231;
+      --cp-surface: #292929;
+      --cp-surface-soft: #2e2e2e;
+      --cp-border: #474747;
+      --cp-border-strong: #5f5f5f;
+      --cp-text: #dedede;
+      --cp-text-muted: #919191;
+      --cp-text-soft: #b0b0b0;
+      --cp-accent: #fd8ea1;
+      --cp-accent-hover: #fb7b91;
+      --cp-accent-soft: rgba(253, 142, 161, 0.14);
+      --cp-accent-fg: #1a1a1a;
+      --cp-success: #4ade80;
+      --cp-danger: #f87171;
+      --cp-warning: #fbbf24;
+      --cp-link: #4da6ff;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+      --cp-overlay: rgba(41, 41, 41, 0.88);
+      --cp-panel: rgba(41, 41, 41, 0.72);
+      --cp-panel-strong: rgba(41, 41, 41, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.04);
+      --cp-highlight: rgba(253, 142, 161, 0.12);
+      --cp-face-contrast: #ffffff;
+      --cp-app-accent: #78b9d0;
+      --cp-app-accent-hover: #91c9dc;
+      --cp-app-accent-soft: rgba(120, 185, 208, 0.16);
+      --cp-app-accent-fg: #13252b;
+      --cp-mood-1: #6f6f6f;
+      --cp-mood-2: #9ca4a8;
+      --cp-mood-3: #8ca3ae;
+      --cp-mood-4: #78abc4;
+      --cp-mood-5: #72c9f3;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background: var(--cp-bg);
+      color: var(--cp-text);
+      font-family: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    button {
+      border: 0;
+      font: inherit;
+    }
+    .page {
+      display: grid;
+      min-height: 100vh;
+      place-items: center;
+      padding: 32px 16px;
+    }
+    .layout {
+      display: grid;
+      width: min(900px, 100%);
+      grid-template-columns: 390px minmax(240px, 1fr);
+      gap: 36px;
+      align-items: start;
+    }
+    .phone {
+      position: relative;
+      width: 390px;
+      min-height: 780px;
+      overflow: hidden;
+      border: 1px solid var(--cp-border-strong);
+      border-radius: 16px;
+      background: var(--cp-surface);
+      box-shadow: 0 0 2px var(--cp-border), 0 1px 2px var(--cp-border);
+    }
+    .status {
+      height: 20px;
+      background: var(--cp-surface);
+    }
+    .month-nav {
+      display: grid;
+      height: 48px;
+      grid-template-columns: 52px 1fr 52px;
+      align-items: center;
+      border-bottom: 1px solid var(--cp-border);
+      background: var(--cp-surface);
+    }
+    .month-nav button {
+      height: 44px;
+      background: var(--cp-surface);
+      color: var(--cp-app-accent);
+      cursor: pointer;
+    }
+    .month-nav .arrow {
+      font-size: 1.9rem;
+      font-weight: 300;
+    }
+    .month-title {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      color: var(--cp-text);
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+    .month-title svg {
+      width: 15px;
+      height: 15px;
+      fill: none;
+      stroke: var(--cp-text-muted);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .weekdays,
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+    .weekdays {
+      height: 28px;
+      align-items: center;
+      border-bottom: 1px solid var(--cp-border);
+      background: var(--cp-bg-elevated);
+      color: var(--cp-text-muted);
+      font-size: .72rem;
+      font-weight: 600;
+      text-align: center;
+    }
+    .calendar {
+      grid-auto-rows: 66px;
+      background: var(--cp-surface);
+    }
+    .day {
+      position: relative;
+      display: grid;
+      min-width: 0;
+      grid-template-rows: 17px 1fr 15px;
+      justify-items: center;
+      padding: 4px 2px 3px;
+      border-bottom: 1px solid var(--cp-border);
+      background: var(--cp-surface);
+      color: var(--cp-text);
+    }
+    .day:nth-last-child(-n+7) {
+      border-bottom: 0;
+    }
+    .day.other {
+      color: var(--cp-text-muted);
+      opacity: .45;
+    }
+    .day.today {
+      box-shadow: inset 0 0 0 2px var(--cp-app-accent);
+    }
+    .date {
+      justify-self: start;
+      padding-left: 3px;
+      color: var(--cp-text-muted);
+      font-size: .72rem;
+      line-height: 1;
+    }
+    .count {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      display: grid;
+      min-width: 16px;
+      height: 16px;
+      place-items: center;
+      padding: 0 4px;
+      border-radius: 0.625rem;
+      background: var(--cp-surface-soft);
+      color: var(--cp-mood-2);
+      font-size: .62rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .mood {
+      width: 25px;
+      height: 25px;
+      align-self: center;
+      color: var(--cp-text);
+    }
+    .mood.level-2 {
+      color: var(--cp-text-soft);
+    }
+    .mood.level-3 {
+      color: var(--cp-mood-3);
+    }
+    .mood.level-4 {
+      color: var(--cp-mood-4);
+    }
+    .mood.level-5 {
+      color: var(--cp-mood-5);
+    }
+    .average {
+      color: var(--cp-text-soft);
+      font-size: .66rem;
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .no-score {
+      align-self: center;
+      color: var(--cp-text-muted);
+      font-size: .58rem;
+      line-height: 1.1;
+      text-align: center;
+    }
+    .month-summary {
+      display: grid;
+      margin: 12px;
+      grid-template-columns: repeat(3, 1fr);
+      border: 1px solid var(--cp-border);
+      border-radius: 0.625rem;
+      background: var(--cp-bg-elevated);
+    }
+    .month-summary div {
+      padding: 10px 4px;
+      text-align: center;
+    }
+    .month-summary div + div {
+      border-left: 1px solid var(--cp-border);
+    }
+    .month-summary span {
+      display: block;
+      color: var(--cp-text-muted);
+      font-size: .62rem;
+    }
+    .month-summary strong {
+      display: block;
+      margin-top: 3px;
+      font-size: .9rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .record-now {
+      position: absolute;
+      right: 16px;
+      bottom: 68px;
+      z-index: 2;
+      display: inline-flex;
+      min-height: 46px;
+      align-items: center;
+      gap: 7px;
+      padding: 0 18px;
+      border-radius: 0.625rem;
+      background: var(--cp-app-accent);
+      color: var(--cp-app-accent-fg);
+      box-shadow: 0 0 2px var(--cp-border-strong), 0 1px 2px var(--cp-border-strong);
+      font-weight: 700;
+    }
+    .record-now span:first-child {
+      font-size: 1.3rem;
+      font-weight: 400;
+    }
+    .tabs {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: grid;
+      height: 58px;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid var(--cp-border);
+      background: var(--cp-panel-strong);
+    }
+    .tab {
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 2px;
+      background: transparent;
+      color: var(--cp-text-muted);
+      font-size: .62rem;
+    }
+    .tab.active {
+      color: var(--cp-app-accent);
+      font-weight: 700;
+    }
+    .tab svg {
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .notes {
+      padding-top: 8px;
+    }
+    .notes h1 {
+      margin: 0 0 12px;
+      font-size: 1.8rem;
+      letter-spacing: -.03em;
+    }
+    .notes p {
+      margin: 0 0 18px;
+      color: var(--cp-text-muted);
+      line-height: 1.7;
+    }
+    .notes ul {
+      margin: 0;
+      padding: 20px 20px 20px 40px;
+      border: 1px solid var(--cp-border);
+      border-radius: 16px;
+      background: var(--cp-surface);
+      line-height: 1.8;
+    }
+    @media (max-width: 760px) {
+      .page {
+        display: block;
+        padding: 0;
+      }
+      .layout {
+        display: block;
+        width: 100%;
+      }
+      .phone {
+        width: 100%;
+        min-height: 100vh;
+        border: 0;
+        border-radius: 0;
+      }
+      .notes {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" aria-hidden="true">
+    <defs>
+      <symbol id="mood-1" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10.4" fill="var(--cp-mood-1)"/>
+        <path d="M8.3 10.2 10.4 11.9 8.3 13.6M15.7 10.2 13.6 11.9 15.7 13.6" fill="none" stroke="var(--cp-face-contrast)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M10.1 16.9h3.8" fill="none" stroke="var(--cp-face-contrast)" stroke-width="1.3" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="mood-2" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9.4" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <circle cx="9.4" cy="10.6" r="1.37" fill="currentColor"/>
+        <circle cx="14.6" cy="10.6" r="1.37" fill="currentColor"/>
+        <path d="M9.2 15.5q2.8-2.7 5.6 0" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="mood-3" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9.4" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <circle cx="9.4" cy="10.6" r="1.37" fill="currentColor"/>
+        <circle cx="14.6" cy="10.6" r="1.37" fill="currentColor"/>
+        <path d="M9.6 15.2h4.8" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="mood-4" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9.4" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <circle cx="9.4" cy="10.6" r="1.37" fill="currentColor"/>
+        <circle cx="14.6" cy="10.6" r="1.37" fill="currentColor"/>
+        <path d="M9.2 13.8q2.8 2.7 5.6 0" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="mood-5" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9.4" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <path d="M8.1 11q1.3-1.7 2.6 0M13.3 11q1.3-1.7 2.6 0" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M8.8 13.6q3.2 3.7 6.4 0" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <main class="page">
+    <div class="layout">
+      <section class="phone" aria-label="ここログのカレンダー画面案">
+        <div class="status"></div>
+        <header class="month-nav">
+          <button class="arrow" type="button" aria-label="前の月">‹</button>
+          <button class="month-title" type="button" aria-label="月を選ぶ">
+            2026年10月
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 9.5 5 5 5-5"/></svg>
+          </button>
+          <button class="arrow" type="button" aria-label="次の月">›</button>
+        </header>
+
+        <div class="weekdays" aria-hidden="true">
+          <span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span><span>日</span>
+        </div>
+
+        <div class="calendar">
+          <div class="day other"><span class="date">28</span></div>
+          <div class="day other"><span class="date">29</span></div>
+          <div class="day other"><span class="date">30</span></div>
+          <div class="day"><span class="date">1</span><span class="count">1</span><svg class="mood level-3" aria-label="普通"><use href="#mood-3"/></svg><span class="average">3.0</span></div>
+          <div class="day"><span class="date">2</span><span class="count">2</span><svg class="mood level-4" aria-label="いい感じ"><use href="#mood-4"/></svg><span class="average">4.0</span></div>
+          <div class="day"><span class="date">3</span></div>
+          <div class="day"><span class="date">4</span><span class="count">1</span><svg class="mood level-5" aria-label="絶好調"><use href="#mood-5"/></svg><span class="average">5.0</span></div>
+
+          <div class="day"><span class="date">5</span><span class="count">3</span><svg class="mood level-2" aria-label="落ち気味"><use href="#mood-2"/></svg><span class="average">2.3</span></div>
+          <div class="day"><span class="date">6</span></div>
+          <div class="day"><span class="date">7</span><span class="count">1</span><span class="no-score">調子<br>なし</span></div>
+          <div class="day"><span class="date">8</span><span class="count">2</span><svg class="mood level-3" aria-label="普通"><use href="#mood-3"/></svg><span class="average">3.0</span></div>
+          <div class="day"><span class="date">9</span></div>
+          <div class="day"><span class="date">10</span><span class="count">1</span><svg class="mood level-1" aria-label="どん底"><use href="#mood-1"/></svg><span class="average">1.0</span></div>
+          <div class="day today"><span class="date">11</span><span class="count">2</span><svg class="mood level-4" aria-label="いい感じ"><use href="#mood-4"/></svg><span class="average">3.5</span></div>
+
+          <div class="day"><span class="date">12</span></div>
+          <div class="day"><span class="date">13</span><span class="count">1</span><svg class="mood level-3" aria-label="普通"><use href="#mood-3"/></svg><span class="average">3.0</span></div>
+          <div class="day"><span class="date">14</span></div>
+          <div class="day"><span class="date">15</span></div>
+          <div class="day"><span class="date">16</span><span class="count">2</span><svg class="mood level-4" aria-label="いい感じ"><use href="#mood-4"/></svg><span class="average">4.0</span></div>
+          <div class="day"><span class="date">17</span></div>
+          <div class="day"><span class="date">18</span><span class="count">1</span><svg class="mood level-2" aria-label="落ち気味"><use href="#mood-2"/></svg><span class="average">2.0</span></div>
+
+          <div class="day"><span class="date">19</span></div>
+          <div class="day"><span class="date">20</span><span class="count">1</span><svg class="mood level-5" aria-label="絶好調"><use href="#mood-5"/></svg><span class="average">5.0</span></div>
+          <div class="day"><span class="date">21</span></div>
+          <div class="day"><span class="date">22</span><span class="count">1</span><svg class="mood level-3" aria-label="普通"><use href="#mood-3"/></svg><span class="average">3.0</span></div>
+          <div class="day"><span class="date">23</span></div>
+          <div class="day"><span class="date">24</span></div>
+          <div class="day"><span class="date">25</span><span class="count">2</span><svg class="mood level-4" aria-label="いい感じ"><use href="#mood-4"/></svg><span class="average">4.5</span></div>
+
+          <div class="day"><span class="date">26</span></div>
+          <div class="day"><span class="date">27</span></div>
+          <div class="day"><span class="date">28</span><span class="count">1</span><svg class="mood level-2" aria-label="落ち気味"><use href="#mood-2"/></svg><span class="average">2.0</span></div>
+          <div class="day"><span class="date">29</span></div>
+          <div class="day"><span class="date">30</span></div>
+          <div class="day"><span class="date">31</span><span class="count">1</span><svg class="mood level-3" aria-label="普通"><use href="#mood-3"/></svg><span class="average">3.0</span></div>
+          <div class="day other"><span class="date">1</span></div>
+
+          <div class="day other"><span class="date">2</span></div>
+          <div class="day other"><span class="date">3</span></div>
+          <div class="day other"><span class="date">4</span></div>
+          <div class="day other"><span class="date">5</span></div>
+          <div class="day other"><span class="date">6</span></div>
+          <div class="day other"><span class="date">7</span></div>
+          <div class="day other"><span class="date">8</span></div>
+        </div>
+
+        <section class="month-summary" aria-label="2026年10月のまとめ">
+          <div><span>平均調子</span><strong>3.4</strong></div>
+          <div><span>調子記録日</span><strong>12日</strong></div>
+          <div><span>投稿数</span><strong>18件</strong></div>
+        </section>
+
+        <button class="record-now" type="button"><span>＋</span><span>今を記録</span></button>
+
+        <nav class="tabs" aria-label="主要画面">
+          <button class="tab" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>
+            <span>タイムライン</span>
+          </button>
+          <button class="tab active" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h14a2 2 0 0 1 2 2V20H3V6.5a2 2 0 0 1 2-2ZM7 2v5M17 2v5M3 9h18"/></svg>
+            <span>カレンダー</span>
+          </button>
+          <button class="tab" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V4M16 19v-7M22 19V7"/></svg>
+            <span>統計</span>
+          </button>
+          <button class="tab" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/><path d="m19.4 13.5 2-1.5-2.4-4.2-2.3.9a7 7 0 0 0-1.5-.8L14.8 5h-5.6l-.4 2.9q-.8.3-1.5.8L5 7.8 2.6 12l2 1.5a7 7 0 0 0 0 1L2.6 16 5 20.2l2.3-.9q.7.5 1.5.8l.4 2.9h5.6l.4-2.9q.8-.3 1.5-.8l2.3.9 2.4-4.2-2-1.5a7 7 0 0 0 0-1Z"/></svg>
+            <span>設定</span>
+          </button>
+        </nav>
+      </section>
+
+      <aside class="notes">
+        <h1>カレンダー画面案</h1>
+        <p>のみログの月見出しと密度感を基準に、ここログ向けの情報を配置した初期ワイヤーフレームです。</p>
+        <ul>
+          <li>日付は左上、件数は右上の小さなバッジ</li>
+          <li>顔は中央、実平均値は下部</li>
+          <li>調子未入力の投稿だけの日も区別</li>
+          <li>今日だけアクセント色の内枠</li>
+          <li>下部に月平均・記録日数・投稿数の簡易まとめ</li>
+          <li>「今を記録」はタブバーの上へ固定</li>
+          <li>4タブは常に同じ位置</li>
+        </ul>
+      </aside>
+    </div>
+  </main>
+</body>
+</html>

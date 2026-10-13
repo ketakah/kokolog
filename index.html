@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-daCm48bs5Bls1bqkTvYOodshwi6w7d2RwKohMtDShnI='; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <script>
+    (() => {
+      const param = new URLSearchParams(window.location.search).get("scoutTheme");
+      let saved = "system";
+      try {
+        saved = window.localStorage.getItem("kokolog:theme") || "system";
+      } catch {}
+      const preference = param || (["light", "dark"].includes(saved) ? saved : "system");
+      const theme = preference === "system"
+        ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+        : preference;
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="description" content="気持ち・思考を記録して振り返る個人用アプリ">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="referrer" content="no-referrer">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="ここログ">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#397b91">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343231">
+  <title>ここログ</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png">
+  <link rel="stylesheet" href="./styles/tokens.css">
+  <link rel="stylesheet" href="./styles/base.css">
+  <link rel="stylesheet" href="./styles/components.css">
+  <link rel="stylesheet" href="./styles/screens.css">
+</head>
+<body>
+  <div id="app" aria-live="polite">
+    <main class="boot-screen">
+      <div class="app-mark" aria-hidden="true">ここ</div>
+      <p>ここログを読み込んでいます…</p>
+    </main>
+  </div>
+  <div id="privacy-cover" class="privacy-cover" aria-hidden="true" hidden>
+    <div class="app-mark" aria-hidden="true">ここ</div>
+    <p>ここログ</p>
+  </div>
+  <div id="toast-region" class="toast-region" aria-live="assertive" aria-atomic="true"></div>
+  <script type="module" src="./src/main.mjs"></script>
+</body>
+</html>

@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ここログ 補助画面案</title>
+  <script>
+    (() => {
+      const param = new URLSearchParams(window.location.search).get("scoutTheme");
+      const theme =
+        param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <style>
+    :root {
+      color-scheme: light;
+      --cp-bg: #f7f4ef;
+      --cp-bg-elevated: #fcfbf8;
+      --cp-surface: #ffffff;
+      --cp-surface-soft: #f5f5f5;
+      --cp-border: #dedede;
+      --cp-border-strong: #919191;
+      --cp-text: #242424;
+      --cp-text-muted: #5c5c5c;
+      --cp-text-soft: #6f6f6f;
+      --cp-accent: #b11f4b;
+      --cp-accent-hover: #9a1a41;
+      --cp-accent-soft: rgba(177, 31, 75, 0.08);
+      --cp-accent-fg: #ffffff;
+      --cp-success: #16a34a;
+      --cp-danger: #dc2626;
+      --cp-warning: #f59e0b;
+      --cp-link: #0078d4;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+      --cp-overlay: rgba(255, 255, 255, 0.8);
+      --cp-panel: rgba(255, 255, 255, 0.86);
+      --cp-panel-strong: rgba(255, 255, 255, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.55);
+      --cp-highlight: rgba(177, 31, 75, 0.12);
+      --cp-face-contrast: #ffffff;
+      --cp-app-accent: #397b91;
+      --cp-app-accent-hover: #30697d;
+      --cp-app-accent-soft: rgba(57, 123, 145, 0.1);
+      --cp-app-accent-fg: #ffffff;
+      --cp-mood-1: #919191;
+      --cp-mood-2: #8c969b;
+      --cp-mood-3: #708994;
+      --cp-mood-4: #56839f;
+      --cp-mood-5: #2587ca;
+    }
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --cp-bg: #3d3b3a;
+      --cp-bg-elevated: #343231;
+      --cp-surface: #292929;
+      --cp-surface-soft: #2e2e2e;
+      --cp-border: #474747;
+      --cp-border-strong: #5f5f5f;
+      --cp-text: #dedede;
+      --cp-text-muted: #919191;
+      --cp-text-soft: #b0b0b0;
+      --cp-accent: #fd8ea1;
+      --cp-accent-hover: #fb7b91;
+      --cp-accent-soft: rgba(253, 142, 161, 0.14);
+      --cp-accent-fg: #1a1a1a;
+      --cp-success: #4ade80;
+      --cp-danger: #f87171;
+      --cp-warning: #fbbf24;
+      --cp-link: #4da6ff;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+      --cp-overlay: rgba(41, 41, 41, 0.88);
+      --cp-panel: rgba(41, 41, 41, 0.72);
+      --cp-panel-strong: rgba(41, 41, 41, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.04);
+      --cp-highlight: rgba(253, 142, 161, 0.12);
+      --cp-face-contrast: #ffffff;
+      --cp-app-accent: #78b9d0;
+      --cp-app-accent-hover: #91c9dc;
+      --cp-app-accent-soft: rgba(120, 185, 208, 0.16);
+      --cp-app-accent-fg: #13252b;
+      --cp-mood-1: #6f6f6f;
+      --cp-mood-2: #9ca4a8;
+      --cp-mood-3: #8ca3ae;
+      --cp-mood-4: #78abc4;
+      --cp-mood-5: #72c9f3;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background: var(--cp-bg);
+      color: var(--cp-text);
+      font-family: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    button {
+      border: 0;
+      font: inherit;
+    }
+    .page {
+      width: min(1240px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 2rem;
+      letter-spacing: -.04em;
+    }
+    .lead {
+      margin: 0 0 28px;
+      color: var(--cp-text-muted);
+      line-height: 1.7;
+    }
+    .screens {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    .screen-wrap h2 {
+      margin: 0 0 10px;
+      font-size: .9rem;
+      text-align: center;
+    }
+    .phone {
+      position: relative;
+      min-height: 760px;
+      overflow: hidden;
+      border: 1px solid var(--cp-border-strong);
+      border-radius: 16px;
+      background: var(--cp-bg-elevated);
+      box-shadow: 0 0 2px var(--cp-border), 0 1px 2px var(--cp-border);
+    }
+    .status {
+      height: 18px;
+      background: var(--cp-surface);
+    }
+    .nav {
+      display: grid;
+      min-height: 48px;
+      grid-template-columns: 68px 1fr 68px;
+      align-items: center;
+      border-bottom: 1px solid var(--cp-border);
+      background: var(--cp-surface);
+    }
+    .nav h3 {
+      margin: 0;
+      overflow: hidden;
+      font-size: .98rem;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .nav button {
+      min-height: 44px;
+      padding: 0 10px;
+      background: transparent;
+      color: var(--cp-app-accent);
+    }
+    .nav button:first-child {
+      text-align: left;
+    }
+    .nav button:last-child {
+      text-align: right;
+    }
+    .content {
+      padding: 12px 12px 76px;
+    }
+    .segmented {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 3px;
+      border-radius: 0.625rem;
+      background: var(--cp-surface-soft);
+    }
+    .segmented button {
+      min-height: 34px;
+      border-radius: 0.5rem;
+      background: transparent;
+      color: var(--cp-text-muted);
+      font-size: .78rem;
+      font-weight: 700;
+    }
+    .segmented .selected {
+      background: var(--cp-surface);
+      color: var(--cp-text);
+      box-shadow: 0 0 2px var(--cp-border);
+    }
+    .summary {
+      display: grid;
+      margin-top: 10px;
+      grid-template-columns: repeat(3, 1fr);
+      border: 1px solid var(--cp-border);
+      border-radius: 0.625rem;
+      background: var(--cp-surface);
+    }
+    .summary div {
+      padding: 10px 3px;
+      text-align: center;
+    }
+    .summary div + div {
+      border-left: 1px solid var(--cp-border);
+    }
+    .summary span {
+      display: block;
+      color: var(--cp-text-muted);
+      font-size: .6rem;
+    }
+    .summary strong {
+      display: block;
+      margin-top: 3px;
+      font-size: .92rem;
+    }
+    .chart-card,
+    .detail-card,
+    .settings-group {
+      margin-top: 10px;
+      border: 1px solid var(--cp-border);
+      border-radius: 16px;
+      background: var(--cp-surface);
+    }
+    .chart-card {
+      padding: 12px 10px 10px;
+    }
+    .chart-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 3px 8px;
+      font-size: .72rem;
+    }
+    .chart-title span {
+      color: var(--cp-text-muted);
+    }
+    .chart {
+      width: 100%;
+      height: 260px;
+      overflow: visible;
+    }
+    .chart text {
+      fill: var(--cp-text-muted);
+      font-family: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 9px;
+    }
+    .chart .grid-line {
+      stroke: var(--cp-border);
+      stroke-width: 1;
+    }
+    .chart .trend {
+      fill: none;
+      stroke: var(--cp-app-accent);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .chart .missing {
+      stroke-dasharray: 4 4;
+    }
+    .chart .point {
+      stroke: var(--cp-surface);
+      stroke-width: 2;
+    }
+    .chart-note {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin: 7px 4px 0;
+      color: var(--cp-text-muted);
+      font-size: .65rem;
+    }
+    .dash {
+      width: 22px;
+      border-top: 2px dashed var(--cp-app-accent);
+    }
+    .selected-day {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 0.625rem;
+      background: var(--cp-app-accent-soft);
+      color: var(--cp-text-soft);
+      font-size: .72rem;
+    }
+    .selected-day strong {
+      color: var(--cp-app-accent-hover);
+    }
+    .tabs {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: grid;
+      height: 58px;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid var(--cp-border);
+      background: var(--cp-panel-strong);
+    }
+    .tab {
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 2px;
+      background: transparent;
+      color: var(--cp-text-muted);
+      font-size: .6rem;
+    }
+    .tab.active {
+      color: var(--cp-app-accent);
+      font-weight: 700;
+    }
+    .tab svg {
+      width: 21px;
+      height: 21px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .detail {
+      padding: 16px 14px 48px;
+    }
+    .detail-time {
+      color: var(--cp-text-muted);
+      font-size: .72rem;
+    }
+    .detail h4 {
+      margin: 10px 0 12px;
+      font-size: 1.25rem;
+      line-height: 1.45;
+    }
+    .mood-line {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 16px;
+      color: var(--cp-mood-4);
+      font-size: .78rem;
+      font-weight: 700;
+    }
+    .mood-line svg {
+      width: 30px;
+      height: 30px;
+    }
+    .detail-body {
+      margin: 0;
+      color: var(--cp-text-soft);
+      font-size: .9rem;
+      line-height: 1.85;
+      white-space: pre-wrap;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 18px;
+    }
+    .chip {
+      display: inline-flex;
+      min-height: 26px;
+      align-items: center;
+      padding: 0 9px;
+      border-radius: 0.625rem;
+      background: var(--cp-surface-soft);
+      color: var(--cp-text-soft);
+      font-size: .68rem;
+    }
+    .detail-card {
+      padding: 4px 14px;
+    }
+    .detail-row {
+      display: flex;
+      min-height: 46px;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--cp-text-soft);
+      font-size: .76rem;
+    }
+    .detail-row + .detail-row {
+      border-top: 1px solid var(--cp-border);
+    }
+    .detail-row strong {
+      color: var(--cp-text);
+      font-weight: 600;
+    }
+    .detail-row.danger {
+      color: var(--cp-danger);
+    }
+    .favorite-button {
+      display: inline-flex;
+      min-height: 36px;
+      align-items: center;
+      gap: 6px;
+      margin-top: 18px;
+      padding: 0 12px;
+      border: 1px solid var(--cp-border);
+      border-radius: 0.625rem;
+      background: var(--cp-surface);
+      color: var(--cp-app-accent);
+      font-weight: 700;
+    }
+    .settings {
+      padding: 12px 12px 78px;
+    }
+    .backup-alert {
+      padding: 12px 14px;
+      border: 1px solid var(--cp-warning);
+      border-radius: 0.625rem;
+      background: var(--cp-surface);
+      color: var(--cp-text-soft);
+      font-size: .75rem;
+      line-height: 1.55;
+    }
+    .backup-alert strong {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--cp-text);
+    }
+    .section-label {
+      margin: 17px 6px 6px;
+      color: var(--cp-text-muted);
+      font-size: .67rem;
+      font-weight: 700;
+    }
+    .settings-group {
+      margin-top: 0;
+      overflow: hidden;
+    }
+    .setting-row {
+      display: grid;
+      min-height: 50px;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 13px;
+      background: var(--cp-surface);
+    }
+    .setting-row + .setting-row {
+      border-top: 1px solid var(--cp-border);
+    }
+    .setting-row strong,
+    .setting-row small {
+      display: block;
+    }
+    .setting-row strong {
+      font-size: .8rem;
+    }
+    .setting-row small {
+      margin-top: 2px;
+      color: var(--cp-text-muted);
+      font-size: .63rem;
+    }
+    .setting-value {
+      color: var(--cp-text-muted);
+      font-size: .72rem;
+    }
+    .setting-value.link {
+      color: var(--cp-app-accent);
+      font-weight: 700;
+    }
+    .storage-bar {
+      width: 72px;
+      height: 6px;
+      overflow: hidden;
+      border-radius: 0.625rem;
+      background: var(--cp-surface-soft);
+    }
+    .storage-bar span {
+      display: block;
+      width: 28%;
+      height: 100%;
+      background: var(--cp-app-accent);
+    }
+    @media (max-width: 1060px) {
+      .screens {
+        grid-template-columns: repeat(2, minmax(320px, 1fr));
+      }
+    }
+    @media (max-width: 710px) {
+      .page {
+        width: min(100% - 24px, 390px);
+        padding-top: 22px;
+      }
+      .screens {
+        grid-template-columns: 1fr;
+      }
+      .phone {
+        min-height: 720px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" aria-hidden="true">
+    <defs>
+      <symbol id="mood-4" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9.4" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <circle cx="9.4" cy="10.6" r="1.37" fill="currentColor"/>
+        <circle cx="14.6" cy="10.6" r="1.37" fill="currentColor"/>
+        <path d="M9.2 13.8q2.8 2.7 5.6 0" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <main class="page">
+    <h1>ここログ 補助画面案</h1>
+    <p class="lead">統計、記録詳細、設定の推奨構成です。統計と設定では下部タブを残し、記録詳細では隠します。</p>
+
+    <div class="screens">
+      <section class="screen-wrap">
+        <h2>1. 統計（月表示）</h2>
+        <div class="phone">
+          <div class="status"></div>
+          <header class="nav">
+            <button type="button" aria-label="前の月">‹</button>
+            <h3>2026年10月</h3>
+            <button type="button" aria-label="次の月">›</button>
+          </header>
+          <div class="content">
+            <div class="segmented"><button class="selected" type="button">月</button><button type="button">年</button></div>
+            <section class="summary" aria-label="月のまとめ">
+              <div><span>平均調子</span><strong>3.4</strong></div>
+              <div><span>調子記録日</span><strong>12日</strong></div>
+              <div><span>投稿数</span><strong>18件</strong></div>
+            </section>
+            <section class="chart-card">
+              <div class="chart-title"><strong>日ごとの平均調子</strong><span>縦軸 1〜5</span></div>
+              <svg class="chart" viewBox="0 0 330 250" role="img" aria-label="2026年10月の日ごとの平均調子">
+                <g>
+                  <line class="grid-line" x1="30" y1="20" x2="320" y2="20"/><text x="12" y="23">5</text>
+                  <line class="grid-line" x1="30" y1="70" x2="320" y2="70"/><text x="12" y="73">4</text>
+                  <line class="grid-line" x1="30" y1="120" x2="320" y2="120"/><text x="12" y="123">3</text>
+                  <line class="grid-line" x1="30" y1="170" x2="320" y2="170"/><text x="12" y="173">2</text>
+                  <line class="grid-line" x1="30" y1="220" x2="320" y2="220"/><text x="12" y="223">1</text>
+                </g>
+                <g>
+                  <path class="trend" d="M38 120 47 70"/>
+                  <path class="trend missing" d="M47 70 66 20"/>
+                  <path class="trend" d="M66 20 75 155"/>
+                  <path class="trend missing" d="M75 155 104 120"/>
+                  <path class="trend missing" d="M104 120 123 220"/>
+                  <path class="trend" d="M123 220 132 95"/>
+                  <path class="trend missing" d="M132 95 151 120"/>
+                  <path class="trend missing" d="M151 120 180 70"/>
+                  <path class="trend missing" d="M180 70 199 170"/>
+                  <path class="trend missing" d="M199 170 218 20"/>
+                  <path class="trend missing" d="M218 20 237 120"/>
+                  <path class="trend missing" d="M237 120 266 45"/>
+                  <path class="trend missing" d="M266 45 294 170"/>
+                  <path class="trend missing" d="M294 170 313 120"/>
+                </g>
+                <g>
+                  <circle class="point" cx="38" cy="120" r="5" fill="var(--cp-mood-3)"/>
+                  <circle class="point" cx="47" cy="70" r="5" fill="var(--cp-mood-4)"/>
+                  <circle class="point" cx="66" cy="20" r="5" fill="var(--cp-mood-5)"/>
+                  <circle class="point" cx="75" cy="155" r="5" fill="var(--cp-mood-2)"/>
+                  <circle class="point" cx="104" cy="120" r="5" fill="var(--cp-mood-3)"/>
+                  <circle class="point" cx="123" cy="220" r="5" fill="var(--cp-mood-1)"/>
+                  <circle class="point" cx="132" cy="95" r="7" fill="var(--cp-mood-4)"/>
+                  <circle class="point" cx="151" cy="120" r="5" fill="var(--cp-mood-3)"/>
+                  <circle class="point" cx="180" cy="70" r="5" fill="var(--cp-mood-4)"/>
+                  <circle class="point" cx="199" cy="170" r="5" fill="var(--cp-mood-2)"/>
+                  <circle class="point" cx="218" cy="20" r="5" fill="var(--cp-mood-5)"/>
+                  <circle class="point" cx="237" cy="120" r="5" fill="var(--cp-mood-3)"/>
+                  <circle class="point" cx="266" cy="45" r="5" fill="var(--cp-mood-4)"/>
+                  <circle class="point" cx="294" cy="170" r="5" fill="var(--cp-mood-2)"/>
+                  <circle class="point" cx="313" cy="120" r="5" fill="var(--cp-mood-3)"/>
+                </g>
+                <g>
+                  <text x="34" y="242">1</text><text x="98" y="242">8</text><text x="164" y="242">15</text><text x="230" y="242">22</text><text x="303" y="242">31</text>
+                </g>
+              </svg>
+              <div class="chart-note"><span class="dash"></span><span>破線は調子未入力の日をまたぐ区間</span></div>
+            </section>
+            <div class="selected-day"><strong>10月11日　平均3.5</strong>　2件の投稿 ›</div>
+          </div>
+          <nav class="tabs" aria-label="主要画面">
+            <button class="tab" type="button"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg><span>タイムライン</span></button>
+            <button class="tab" type="button"><svg viewBox="0 0 24 24"><path d="M5 4.5h14a2 2 0 0 1 2 2V20H3V6.5a2 2 0 0 1 2-2ZM7 2v5M17 2v5M3 9h18"/></svg><span>カレンダー</span></button>
+            <button class="tab active" type="button"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V4M16 19v-7M22 19V7"/></svg><span>統計</span></button>
+            <button class="tab" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5"/><path d="m19.4 13.5 2-1.5-2.4-4.2-2.3.9a7 7 0 0 0-1.5-.8L14.8 5h-5.6l-.4 2.9q-.8.3-1.5.8L5 7.8 2.6 12l2 1.5a7 7 0 0 0 0 1L2.6 16 5 20.2l2.3-.9q.7.5 1.5.8l.4 2.9h5.6l.4-2.9q.8-.3 1.5-.8l2.3.9 2.4-4.2-2-1.5a7 7 0 0 0 0-1Z"/></svg><span>設定</span></button>
+          </nav>
+        </div>
+      </section>
+
+      <section class="screen-wrap">
+        <h2>2. 記録詳細</h2>
+        <div class="phone">
+          <div class="status"></div>
+          <header class="nav">
+            <button type="button">‹ 戻る</button>
+            <h3>記録</h3>
+            <button type="button">編集</button>
+          </header>
+          <article class="detail">
+            <div class="detail-time">2026年10月11日（日）21:45</div>
+            <h4>話してみたら気持ちが軽くなった</h4>
+            <div class="mood-line"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mood-4"/></svg><span>いい感じ　4</span></div>
+            <p class="detail-body">一人で考え続けるより、言葉にして誰かに話すだけで見え方が変わった。
+
+問題が全部なくなったわけではないけれど、明日やることは整理できた。思っていたことを言葉にする過程で、自分が何を怖がっていたのかも少し分かった気がする。</p>
+            <div class="chips"><span class="chip">気づき</span><span class="chip">対話</span></div>
+            <button class="favorite-button" type="button">★ お気に入り</button>
+
+            <section class="detail-card">
+              <div class="detail-row"><strong>編集履歴</strong><span>2件　›</span></div>
+              <div class="detail-row"><strong>作成</strong><span>2026/10/11 21:45</span></div>
+              <div class="detail-row"><strong>更新</strong><span>2026/10/11 22:03</span></div>
+              <div class="detail-row danger"><strong>ゴミ箱へ移動</strong><span>›</span></div>
+            </section>
+          </article>
+        </div>
+      </section>
+
+      <section class="screen-wrap">
+        <h2>3. 設定</h2>
+        <div class="phone">
+          <div class="status"></div>
+          <header class="nav">
+            <span></span>
+            <h3>設定</h3>
+            <span></span>
+          </header>
+          <div class="settings">
+            <div class="backup-alert"><strong>バックアップをおすすめします</strong>最後の完全JSONバックアップから32日経過しています。</div>
+
+            <div class="section-label">表示とプライバシー</div>
+            <section class="settings-group">
+              <div class="setting-row"><div><strong>テーマ</strong><small>システム設定に追従</small></div><span class="setting-value">自動　›</span></div>
+              <div class="setting-row"><div><strong>PINロック</strong><small>覗き見防止</small></div><span class="setting-value">オン　›</span></div>
+              <div class="setting-row"><div><strong>自動ロック</strong><small>バックグラウンド移行後</small></div><span class="setting-value">1分　›</span></div>
+            </section>
+
+            <div class="section-label">データ</div>
+            <section class="settings-group">
+              <div class="setting-row"><div><strong>完全JSONバックアップ</strong><small>記録・タグ・履歴・ゴミ箱</small></div><span class="setting-value link">作成</span></div>
+              <div class="setting-row"><div><strong>インポート・復元</strong><small>追加・統合または全置換</small></div><span class="setting-value">›</span></div>
+              <div class="setting-row"><div><strong>CSV入出力</strong><small>Excelで開ける形式</small></div><span class="setting-value">›</span></div>
+              <div class="setting-row"><div><strong>ストレージ</strong><small>約18 MB使用</small></div><div class="storage-bar" aria-label="ストレージ使用量28パーセント"><span></span></div></div>
+            </section>
+
+            <div class="section-label">管理</div>
+            <section class="settings-group">
+              <div class="setting-row"><div><strong>タグ管理</strong><small>名称変更・統合・削除</small></div><span class="setting-value">12件　›</span></div>
+              <div class="setting-row"><div><strong>ゴミ箱</strong><small>30日後に完全削除</small></div><span class="setting-value">3件　›</span></div>
+              <div class="setting-row"><div><strong>置換前スナップショット</strong><small>あと5日で自動削除</small></div><span class="setting-value">復元　›</span></div>
+            </section>
+          </div>
+          <nav class="tabs" aria-label="主要画面">
+            <button class="tab" type="button"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg><span>タイムライン</span></button>
+            <button class="tab" type="button"><svg viewBox="0 0 24 24"><path d="M5 4.5h14a2 2 0 0 1 2 2V20H3V6.5a2 2 0 0 1 2-2ZM7 2v5M17 2v5M3 9h18"/></svg><span>カレンダー</span></button>
+            <button class="tab" type="button"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V4M16 19v-7M22 19V7"/></svg><span>統計</span></button>
+            <button class="tab active" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5"/><path d="m19.4 13.5 2-1.5-2.4-4.2-2.3.9a7 7 0 0 0-1.5-.8L14.8 5h-5.6l-.4 2.9q-.8.3-1.5.8L5 7.8 2.6 12l2 1.5a7 7 0 0 0 0 1L2.6 16 5 20.2l2.3-.9q.7.5 1.5.8l.4 2.9h5.6l.4-2.9q.8-.3 1.5-.8l2.3.9 2.4-4.2-2-1.5a7 7 0 0 0 0-1Z"/></svg><span>設定</span></button>
+          </nav>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

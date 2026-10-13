@@ -1,0 +1,34 @@
+{
+  "id": "./",
+  "name": "ここログ",
+  "short_name": "ここログ",
+  "description": "気持ち・思考を記録して振り返る個人用アプリ",
+  "lang": "ja",
+  "start_url": "./#/timeline",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f4ef",
+  "theme_color": "#397b91",
+  "categories": ["lifestyle", "productivity"],
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

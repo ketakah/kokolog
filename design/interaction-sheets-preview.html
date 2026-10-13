@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ここログ ロック・シート画面案</title>
+  <script>
+    (() => {
+      const param = new URLSearchParams(window.location.search).get("scoutTheme");
+      const theme =
+        param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <style>
+    :root {
+      color-scheme: light;
+      --cp-bg: #f7f4ef;
+      --cp-bg-elevated: #fcfbf8;
+      --cp-surface: #ffffff;
+      --cp-surface-soft: #f5f5f5;
+      --cp-border: #dedede;
+      --cp-border-strong: #919191;
+      --cp-text: #242424;
+      --cp-text-muted: #5c5c5c;
+      --cp-text-soft: #6f6f6f;
+      --cp-accent: #b11f4b;
+      --cp-accent-hover: #9a1a41;
+      --cp-accent-soft: rgba(177, 31, 75, 0.08);
+      --cp-accent-fg: #ffffff;
+      --cp-success: #16a34a;
+      --cp-danger: #dc2626;
+      --cp-warning: #f59e0b;
+      --cp-link: #0078d4;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+      --cp-overlay: rgba(255, 255, 255, 0.8);
+      --cp-panel: rgba(255, 255, 255, 0.86);
+      --cp-panel-strong: rgba(255, 255, 255, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.55);
+      --cp-highlight: rgba(177, 31, 75, 0.12);
+      --cp-face-contrast: #ffffff;
+      --cp-app-accent: #397b91;
+      --cp-app-accent-hover: #30697d;
+      --cp-app-accent-soft: rgba(57, 123, 145, 0.1);
+      --cp-app-accent-fg: #ffffff;
+      --cp-mood-1: #919191;
+      --cp-mood-2: #8c969b;
+      --cp-mood-3: #708994;
+      --cp-mood-4: #56839f;
+      --cp-mood-5: #2587ca;
+    }
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --cp-bg: #3d3b3a;
+      --cp-bg-elevated: #343231;
+      --cp-surface: #292929;
+      --cp-surface-soft: #2e2e2e;
+      --cp-border: #474747;
+      --cp-border-strong: #5f5f5f;
+      --cp-text: #dedede;
+      --cp-text-muted: #919191;
+      --cp-text-soft: #b0b0b0;
+      --cp-accent: #fd8ea1;
+      --cp-accent-hover: #fb7b91;
+      --cp-accent-soft: rgba(253, 142, 161, 0.14);
+      --cp-accent-fg: #1a1a1a;
+      --cp-success: #4ade80;
+      --cp-danger: #f87171;
+      --cp-warning: #fbbf24;
+      --cp-link: #4da6ff;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+      --cp-overlay: rgba(41, 41, 41, 0.88);
+      --cp-panel: rgba(41, 41, 41, 0.72);
+      --cp-panel-strong: rgba(41, 41, 41, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.04);
+      --cp-highlight: rgba(253, 142, 161, 0.12);
+      --cp-face-contrast: #ffffff;
+      --cp-app-accent: #78b9d0;
+      --cp-app-accent-hover: #91c9dc;
+      --cp-app-accent-soft: rgba(120, 185, 208, 0.16);
+      --cp-app-accent-fg: #13252b;
+      --cp-mood-1: #6f6f6f;
+      --cp-mood-2: #9ca4a8;
+      --cp-mood-3: #8ca3ae;
+      --cp-mood-4: #78abc4;
+      --cp-mood-5: #72c9f3;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--cp-bg);
+      color: var(--cp-text);
+      font-family: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    button,
+    input {
+      font: inherit;
+    }
+    button {
+      border: 0;
+    }
+    .page {
+      width: min(980px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 2rem;
+      letter-spacing: -.04em;
+    }
+    .lead {
+      margin: 0 0 28px;
+      color: var(--cp-text-muted);
+      line-height: 1.7;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    .demo h2 {
+      margin: 0 0 10px;
+      font-size: .9rem;
+      text-align: center;
+    }
+    .phone {
+      position: relative;
+      min-height: 620px;
+      overflow: hidden;
+      border: 1px solid var(--cp-border-strong);
+      border-radius: 16px;
+      background: var(--cp-bg-elevated);
+      box-shadow: 0 0 2px var(--cp-border), 0 1px 2px var(--cp-border);
+    }
+    .lock {
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 16px;
+      padding: 42px 28px;
+      text-align: center;
+    }
+    .app-mark {
+      display: grid;
+      width: 68px;
+      height: 68px;
+      place-items: center;
+      border-radius: 16px;
+      background: var(--cp-app-accent);
+      color: var(--cp-app-accent-fg);
+      font-size: 1.6rem;
+      font-weight: 800;
+    }
+    .lock h3,
+    .lock p {
+      margin: 0;
+    }
+    .lock p {
+      color: var(--cp-text-muted);
+      font-size: .78rem;
+    }
+    .pin-dots {
+      display: flex;
+      gap: 12px;
+      margin: 8px 0 4px;
+    }
+    .pin-dots span {
+      width: 12px;
+      height: 12px;
+      border: 1px solid var(--cp-border-strong);
+      border-radius: 50%;
+      background: var(--cp-surface);
+    }
+    .pin-dots .filled {
+      border-color: var(--cp-app-accent);
+      background: var(--cp-app-accent);
+    }
+    .pin-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      opacity: 0;
+    }
+    .primary {
+      min-height: 44px;
+      padding: 0 18px;
+      border-radius: 0.625rem;
+      background: var(--cp-app-accent);
+      color: var(--cp-app-accent-fg);
+      font-weight: 700;
+    }
+    .link-button {
+      min-height: 38px;
+      background: transparent;
+      color: var(--cp-app-accent);
+      font-size: .75rem;
+      font-weight: 700;
+    }
+    .lock-note {
+      max-width: 290px;
+      padding: 10px 12px;
+      border: 1px solid var(--cp-border);
+      border-radius: 0.625rem;
+      background: var(--cp-surface);
+      color: var(--cp-text-soft);
+      font-size: .66rem;
+      line-height: 1.55;
+      text-align: left;
+    }
+    .backdrop {
+      position: absolute;
+      inset: 0;
+      background: var(--cp-overlay);
+    }
+    .ghost {
+      padding: 18px;
+      color: var(--cp-text-muted);
+      filter: blur(4px);
+    }
+    .ghost div {
+      height: 62px;
+      margin-bottom: 10px;
+      border: 1px solid var(--cp-border);
+      border-radius: 16px;
+      background: var(--cp-surface);
+    }
+    .sheet {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      max-height: 92%;
+      overflow: hidden;
+      border-top: 1px solid var(--cp-border);
+      border-radius: 16px 16px 0 0;
+      background: var(--cp-surface);
+      box-shadow: var(--cp-shadow);
+    }
+    .handle {
+      width: 38px;
+      height: 4px;
+      margin: 8px auto 5px;
+      border-radius: 0.625rem;
+      background: var(--cp-border-strong);
+    }
+    .sheet-head {
+      display: grid;
+      min-height: 46px;
+      grid-template-columns: 68px 1fr 68px;
+      align-items: center;
+      border-bottom: 1px solid var(--cp-border);
+    }
+    .sheet-head h3 {
+      margin: 0;
+      font-size: .95rem;
+      text-align: center;
+    }
+    .sheet-head button {
+      min-height: 42px;
+      padding: 0 10px;
+      background: transparent;
+      color: var(--cp-app-accent);
+    }
+    .sheet-head button:first-child {
+      text-align: left;
+    }
+    .sheet-head button:last-child {
+      font-weight: 700;
+      text-align: right;
+    }
+    .sheet-body {
+      padding: 12px 14px 18px;
+    }
+    .label {
+      display: block;
+      margin: 13px 2px 6px;
+      color: var(--cp-text-muted);
+      font-size: .67rem;
+      font-weight: 700;
+    }
+    .field {
+      width: 100%;
+      min-height: 40px;
+      padding: 0 11px;
+      border: 1px solid var(--cp-border);
+      border-radius: 0.625rem;
+      outline: 0;
+      background: var(--cp-bg-elevated);
+      color: var(--cp-text);
+    }
+    .row {
+      display: flex;
+      gap: 8px;
+    }
+    .row .field {
+      flex: 1;
+    }
+    .segmented {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 3px;
+      border-radius: 0.625rem;
+      background: var(--cp-surface-soft);
+    }
+    .segmented button {
+      min-height: 34px;
+      border-radius: .5rem;
+      background: transparent;
+      color: var(--cp-text-muted);
+      font-weight: 700;
+    }
+    .segmented .selected {
+      background: var(--cp-surface);
+      color: var(--cp-text);
+      box-shadow: 0 0 2px var(--cp-border);
+    }
+    .moods {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 5px;
+    }
+    .mood-button {
+      min-height: 38px;
+      border: 1px solid var(--cp-border);
+      border-radius: 0.625rem;
+      background: var(--cp-surface);
+      color: var(--cp-text-muted);
+      font-size: .68rem;
+      font-weight: 700;
+    }
+    .mood-button.on {
+      border-color: var(--cp-app-accent);
+      background: var(--cp-app-accent-soft);
+      color: var(--cp-app-accent);
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+    .chip {
+      display: inline-flex;
+      min-height: 30px;
+      align-items: center;
+      padding: 0 10px;
+      border: 1px solid var(--cp-border);
+      border-radius: 0.625rem;
+      background: var(--cp-surface);
+      color: var(--cp-text-soft);
+      font-size: .7rem;
+    }
+    .chip.on {
+      border-color: var(--cp-app-accent);
+      background: var(--cp-app-accent-soft);
+      color: var(--cp-app-accent);
+      font-weight: 700;
+    }
+    .switch-row {
+      display: flex;
+      min-height: 42px;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--cp-border);
+      color: var(--cp-text-soft);
+      font-size: .75rem;
+    }
+    .toggle {
+      width: 38px;
+      height: 22px;
+      padding: 2px;
+      border-radius: 0.625rem;
+      background: var(--cp-app-accent);
+    }
+    .toggle::after {
+      display: block;
+      width: 18px;
+      height: 18px;
+      margin-left: 16px;
+      border-radius: 50%;
+      background: var(--cp-surface);
+      content: "";
+    }
+    .tag-list {
+      margin-top: 10px;
+      border: 1px solid var(--cp-border);
+      border-radius: 0.625rem;
+      overflow: hidden;
+    }
+    .tag-row {
+      display: flex;
+      min-height: 44px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      background: var(--cp-surface);
+      font-size: .76rem;
+    }
+    .tag-row + .tag-row {
+      border-top: 1px solid var(--cp-border);
+    }
+    .tag-row span:last-child {
+      color: var(--cp-text-muted);
+    }
+    .create-tag {
+      margin-top: 10px;
+      color: var(--cp-app-accent);
+      font-size: .75rem;
+      font-weight: 700;
+    }
+    .file-card {
+      padding: 12px;
+      border: 1px solid var(--cp-border);
+      border-radius: 0.625rem;
+      background: var(--cp-bg-elevated);
+    }
+    .file-card strong,
+    .file-card span {
+      display: block;
+    }
+    .file-card span {
+      margin-top: 3px;
+      color: var(--cp-text-muted);
+      font-size: .66rem;
+    }
+    .import-stats {
+      display: grid;
+      margin-top: 10px;
+      grid-template-columns: repeat(3, 1fr);
+      border: 1px solid var(--cp-border);
+      border-radius: 0.625rem;
+      overflow: hidden;
+    }
+    .import-stats div {
+      padding: 9px 3px;
+      background: var(--cp-surface);
+      text-align: center;
+    }
+    .import-stats div + div {
+      border-left: 1px solid var(--cp-border);
+    }
+    .import-stats span,
+    .import-stats strong {
+      display: block;
+    }
+    .import-stats span {
+      color: var(--cp-text-muted);
+      font-size: .6rem;
+    }
+    .import-stats strong {
+      margin-top: 3px;
+      font-size: .9rem;
+    }
+    .warning {
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid var(--cp-warning);
+      border-radius: 0.625rem;
+      color: var(--cp-text-soft);
+      font-size: .68rem;
+      line-height: 1.55;
+    }
+    @media (max-width: 730px) {
+      .page {
+        width: min(100% - 24px, 390px);
+        padding-top: 22px;
+      }
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <h1>ここログ ロック・シート画面案</h1>
+    <p class="lead">通常画面を圧迫しない補助操作は、全画面ロックまたは下から出るシートへまとめます。</p>
+
+    <div class="grid">
+      <section class="demo">
+        <h2>1. PINロック</h2>
+        <div class="phone lock">
+          <div class="app-mark">ここ</div>
+          <h3>ここログはロックされています</h3>
+          <p>6桁のPINを入力してください</p>
+          <label>
+            <span class="pin-dots" aria-hidden="true"><span class="filled"></span><span class="filled"></span><span class="filled"></span><span></span><span></span><span></span></span>
+            <input class="pin-input" inputmode="numeric" aria-label="6桁のPIN">
+          </label>
+          <button class="primary" type="button">ロック解除</button>
+          <button class="link-button" type="button">PINを忘れた場合</button>
+          <div class="lock-note">これは覗き見防止のロックです。本文そのものを暗号化する機能ではありません。</div>
+        </div>
+      </section>
+
+      <section class="demo">
+        <h2>2. タイムラインの絞り込み</h2>
+        <div class="phone">
+          <div class="ghost"><div></div><div></div><div></div><div></div></div>
+          <div class="backdrop"></div>
+          <section class="sheet">
+            <div class="handle"></div>
+            <header class="sheet-head"><button type="button">取消</button><h3>絞り込み</h3><button type="button">適用</button></header>
+            <div class="sheet-body">
+              <span class="label">期間</span>
+              <div class="row"><input class="field" value="2026/10/01" aria-label="開始日"><input class="field" value="2026/10/31" aria-label="終了日"></div>
+              <span class="label">調子</span>
+              <div class="moods"><button class="mood-button on">1</button><button class="mood-button on">2</button><button class="mood-button on">3</button><button class="mood-button">4</button><button class="mood-button">5</button><button class="mood-button">なし</button></div>
+              <span class="label">タグの組み合わせ</span>
+              <div class="segmented"><button class="selected" type="button">すべて含む</button><button type="button">いずれか含む</button></div>
+              <div class="chips"><span class="chip on">仕事　×</span><span class="chip on">不安　×</span><span class="chip">＋ タグ</span></div>
+              <div class="switch-row"><span>お気に入りだけ</span><span class="toggle" aria-hidden="true"></span></div>
+              <button class="link-button" type="button">条件をすべてリセット</button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="demo">
+        <h2>3. タグ選択</h2>
+        <div class="phone">
+          <div class="ghost"><div></div><div></div><div></div><div></div></div>
+          <div class="backdrop"></div>
+          <section class="sheet">
+            <div class="handle"></div>
+            <header class="sheet-head"><button type="button">閉じる</button><h3>タグを追加</h3><button type="button">完了</button></header>
+            <div class="sheet-body">
+              <input class="field" placeholder="タグを検索または新規作成" aria-label="タグ検索">
+              <span class="label">最近使ったタグ</span>
+              <div class="chips"><span class="chip on">気づき　✓</span><span class="chip">仕事</span><span class="chip">不安</span><span class="chip">家族</span></div>
+              <span class="label">すべてのタグ</span>
+              <div class="tag-list">
+                <div class="tag-row"><span>気づき</span><span>24件　✓</span></div>
+                <div class="tag-row"><span>仕事</span><span>18件</span></div>
+                <div class="tag-row"><span>不安</span><span>12件</span></div>
+                <div class="tag-row"><span>家族</span><span>8件</span></div>
+                <div class="tag-row"><span>読書</span><span>6件</span></div>
+              </div>
+              <div class="create-tag">＋ 「対話」を新しいタグとして作成</div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="demo">
+        <h2>4. インポート確認</h2>
+        <div class="phone">
+          <div class="ghost"><div></div><div></div><div></div><div></div></div>
+          <div class="backdrop"></div>
+          <section class="sheet">
+            <div class="handle"></div>
+            <header class="sheet-head"><button type="button">取消</button><h3>インポート確認</h3><button type="button">実行</button></header>
+            <div class="sheet-body">
+              <div class="file-card"><strong>kokolog-backup-2026-10-11.json</strong><span>2.4 MB・スキーマ v1・検証済み</span></div>
+              <span class="label">取り込み方法</span>
+              <div class="segmented"><button class="selected" type="button">追加・統合</button><button type="button">全置換</button></div>
+              <div class="import-stats">
+                <div><span>新規</span><strong>56</strong></div>
+                <div><span>更新</span><strong>0</strong></div>
+                <div><span>重複</span><strong>0</strong></div>
+              </div>
+              <div class="import-stats">
+                <div><span>競合</span><strong>0</strong></div>
+                <div><span>拒否</span><strong>0</strong></div>
+                <div><span>タグ</span><strong>8</strong></div>
+              </div>
+              <div class="warning">実行前に既存データは変更されません。追加・統合では、削除墓標より古い記録を復活させません。</div>
+              <span class="label">内容確認</span>
+              <div class="tag-list">
+                <div class="tag-row"><span>最古の記録</span><span>2024/04/03</span></div>
+                <div class="tag-row"><span>最新の記録</span><span>2026/10/10</span></div>
+                <div class="tag-row"><span>投稿数</span><span>56件</span></div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

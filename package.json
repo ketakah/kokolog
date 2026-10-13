@@ -1,0 +1,17 @@
+{
+  "name": "kokolog",
+  "version": "0.1.0",
+  "private": true,
+  "description": "気持ち・思考を記録して振り返る個人用PWA",
+  "scripts": {
+    "serve": "node scripts/serve.js",
+    "generate:icons": "node scripts/generate-icons.js",
+    "build:pages": "node scripts/build-pages.js",
+    "test:pwa": "node scripts/verify-pwa.js",
+    "test:pages": "node scripts/verify-pwa.js dist-pages && node scripts/verify-pages-output.js",
+    "test": "node tests/unit/run.mjs && node tools/notion-migration/convert-notion-export.test.js && node scripts/verify-pwa.js"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}

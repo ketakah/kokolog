@@ -1,0 +1,13 @@
+# Personal migration data must remain outside the public repository.
+assets/notion*.zip
+assets/notion*/
+migration/private/
+dist-pages/
+
+# Local generated data containing real records.
+*.private.json
+*.migration-report.html
+
+# Local migration and validation notes contain machine-specific paths.
+Notion移行準備.md
+検証記録.md

@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ここログ 顔アイコン案</title>
+  <script>
+    (() => {
+      const param = new URLSearchParams(window.location.search).get("scoutTheme");
+      const theme =
+        param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <style>
+    :root {
+      color-scheme: light;
+      --cp-bg: #f7f4ef;
+      --cp-bg-elevated: #fcfbf8;
+      --cp-surface: #ffffff;
+      --cp-surface-soft: #f5f5f5;
+      --cp-border: #dedede;
+      --cp-border-strong: #919191;
+      --cp-text: #242424;
+      --cp-text-muted: #5c5c5c;
+      --cp-text-soft: #6f6f6f;
+      --cp-accent: #b11f4b;
+      --cp-accent-hover: #9a1a41;
+      --cp-accent-soft: rgba(177, 31, 75, 0.08);
+      --cp-accent-fg: #ffffff;
+      --cp-success: #16a34a;
+      --cp-danger: #dc2626;
+      --cp-warning: #f59e0b;
+      --cp-link: #0078d4;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+      --cp-overlay: rgba(255, 255, 255, 0.8);
+      --cp-panel: rgba(255, 255, 255, 0.86);
+      --cp-panel-strong: rgba(255, 255, 255, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.55);
+      --cp-highlight: rgba(177, 31, 75, 0.12);
+      --cp-face-contrast: #ffffff;
+      --cp-app-accent: #397b91;
+      --cp-app-accent-hover: #30697d;
+      --cp-app-accent-soft: rgba(57, 123, 145, 0.1);
+      --cp-app-accent-fg: #ffffff;
+      --cp-mood-1: #919191;
+      --cp-mood-2: #8c969b;
+      --cp-mood-3: #708994;
+      --cp-mood-4: #56839f;
+      --cp-mood-5: #2587ca;
+    }
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --cp-bg: #3d3b3a;
+      --cp-bg-elevated: #343231;
+      --cp-surface: #292929;
+      --cp-surface-soft: #2e2e2e;
+      --cp-border: #474747;
+      --cp-border-strong: #5f5f5f;
+      --cp-text: #dedede;
+      --cp-text-muted: #919191;
+      --cp-text-soft: #b0b0b0;
+      --cp-accent: #fd8ea1;
+      --cp-accent-hover: #fb7b91;
+      --cp-accent-soft: rgba(253, 142, 161, 0.14);
+      --cp-accent-fg: #1a1a1a;
+      --cp-success: #4ade80;
+      --cp-danger: #f87171;
+      --cp-warning: #fbbf24;
+      --cp-link: #4da6ff;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+      --cp-overlay: rgba(41, 41, 41, 0.88);
+      --cp-panel: rgba(41, 41, 41, 0.72);
+      --cp-panel-strong: rgba(41, 41, 41, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.04);
+      --cp-highlight: rgba(253, 142, 161, 0.12);
+      --cp-face-contrast: #ffffff;
+      --cp-app-accent: #78b9d0;
+      --cp-app-accent-hover: #91c9dc;
+      --cp-app-accent-soft: rgba(120, 185, 208, 0.16);
+      --cp-app-accent-fg: #13252b;
+      --cp-mood-1: #6f6f6f;
+      --cp-mood-2: #9ca4a8;
+      --cp-mood-3: #8ca3ae;
+      --cp-mood-4: #78abc4;
+      --cp-mood-5: #72c9f3;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--cp-bg);
+      color: var(--cp-text);
+      font-family: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    main {
+      width: min(920px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 40px 0 64px;
+    }
+    h1,
+    h2,
+    p {
+      margin-top: 0;
+    }
+    h1 {
+      margin-bottom: 8px;
+      font-size: clamp(1.75rem, 5vw, 2.5rem);
+      letter-spacing: -.04em;
+    }
+    h2 {
+      margin-bottom: 20px;
+      font-size: 1.05rem;
+    }
+    .intro {
+      max-width: 680px;
+      margin-bottom: 28px;
+      color: var(--cp-text-muted);
+      line-height: 1.7;
+    }
+    .panel {
+      margin-top: 20px;
+      padding: 24px;
+      border: 1px solid var(--cp-border);
+      border-radius: 16px;
+      background: var(--cp-surface);
+      box-shadow: 0 0 2px var(--cp-border), 0 1px 2px var(--cp-border);
+    }
+    .faces {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(100px, 1fr));
+      gap: 12px;
+    }
+    .face-card {
+      display: grid;
+      min-height: 164px;
+      place-items: center;
+      align-content: center;
+      gap: 10px;
+      padding: 16px 8px;
+      border: 1px solid var(--cp-border);
+      border-radius: 0.625rem;
+      background: var(--cp-bg-elevated);
+      color: var(--cp-text);
+      text-align: center;
+    }
+    .face-card svg {
+      width: 52px;
+      height: 52px;
+    }
+    .mood-level-2 {
+      color: var(--cp-mood-2);
+    }
+    .mood-level-3 {
+      color: var(--cp-mood-3);
+    }
+    .mood-level-4 {
+      color: var(--cp-mood-4);
+    }
+    .mood-level-5 {
+      color: var(--cp-mood-5);
+    }
+    .level {
+      color: var(--cp-text-muted);
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .label {
+      font-weight: 700;
+    }
+    .calendar-wrap {
+      max-width: 430px;
+      padding: 16px;
+      border: 1px solid var(--cp-border);
+      border-radius: 16px;
+      background: var(--cp-bg-elevated);
+    }
+    .week {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .day {
+      display: grid;
+      min-height: 78px;
+      grid-template-rows: auto 1fr auto;
+      justify-items: center;
+      padding: 6px 2px;
+      border: 1px solid var(--cp-border);
+      border-radius: 0.625rem;
+      background: var(--cp-surface);
+    }
+    .day > span {
+      justify-self: start;
+      padding-left: 3px;
+      color: var(--cp-text-muted);
+      font-size: .75rem;
+    }
+    .day svg {
+      width: 26px;
+      height: 26px;
+      align-self: center;
+    }
+    .day small {
+      color: var(--cp-text-soft);
+      font-size: .68rem;
+    }
+    .note {
+      margin: 16px 0 0;
+      color: var(--cp-text-muted);
+      font-size: .86rem;
+      line-height: 1.6;
+    }
+    @media (max-width: 680px) {
+      main {
+        width: min(100% - 24px, 520px);
+        padding-top: 24px;
+      }
+      .faces {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .face-card:last-child {
+        grid-column: 1 / -1;
+      }
+      .panel {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>ここログ 顔アイコン案</h1>
+    <p class="intro">のみログの丸い輪郭と少ない線というルールを引き継ぎ、気持ちの5段階へ置き換えた案です。すべて同じ24×24のSVGで、iPhoneとWindowsで同じ形に表示できます。</p>
+
+    <section class="panel" aria-labelledby="faces-title">
+      <h2 id="faces-title">5段階</h2>
+      <div class="faces">
+        <article class="face-card">
+          <svg viewBox="0 0 24 24" fill="none" role="img" aria-label="どん底">
+            <circle cx="12" cy="12" r="10.4" fill="var(--cp-mood-1)"/>
+            <path d="M8.3 10.2 10.4 11.9 8.3 13.6M15.7 10.2 13.6 11.9 15.7 13.6" stroke="var(--cp-face-contrast)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10.1 16.9h3.8" stroke="var(--cp-face-contrast)" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+          <span class="level">Level 1</span>
+          <span class="label">どん底</span>
+        </article>
+        <article class="face-card">
+          <svg class="mood-level-2" viewBox="0 0 24 24" fill="none" role="img" aria-label="落ち気味">
+            <circle cx="12" cy="12" r="9.4" stroke="currentColor" stroke-width="2.5"/>
+            <circle cx="9.4" cy="10.6" r="1.37" fill="currentColor"/><circle cx="14.6" cy="10.6" r="1.37" fill="currentColor"/>
+            <path d="M9.2 15.5q2.8-2.7 5.6 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+          <span class="level">Level 2</span>
+          <span class="label">落ち気味</span>
+        </article>
+        <article class="face-card">
+          <svg class="mood-level-3" viewBox="0 0 24 24" fill="none" role="img" aria-label="普通">
+            <circle cx="12" cy="12" r="9.4" stroke="currentColor" stroke-width="2.5"/>
+            <circle cx="9.4" cy="10.6" r="1.37" fill="currentColor"/><circle cx="14.6" cy="10.6" r="1.37" fill="currentColor"/>
+            <path d="M9.6 15.2h4.8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+          <span class="level">Level 3</span>
+          <span class="label">普通</span>
+        </article>
+        <article class="face-card">
+          <svg class="mood-level-4" viewBox="0 0 24 24" fill="none" role="img" aria-label="いい感じ">
+            <circle cx="12" cy="12" r="9.4" stroke="currentColor" stroke-width="2.5"/>
+            <circle cx="9.4" cy="10.6" r="1.37" fill="currentColor"/><circle cx="14.6" cy="10.6" r="1.37" fill="currentColor"/>
+            <path d="M9.2 13.8q2.8 2.7 5.6 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+          <span class="level">Level 4</span>
+          <span class="label">いい感じ</span>
+        </article>
+        <article class="face-card">
+          <svg class="mood-level-5" viewBox="0 0 24 24" fill="none" role="img" aria-label="絶好調">
+            <circle cx="12" cy="12" r="9.4" stroke="currentColor" stroke-width="2.5"/>
+            <path d="M8.1 11q1.3-1.7 2.6 0M13.3 11q1.3-1.7 2.6 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            <path d="M8.8 13.6q3.2 3.7 6.4 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+          <span class="level">Level 5</span>
+          <span class="label">絶好調</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="calendar-title">
+      <h2 id="calendar-title">カレンダー内の26px表示</h2>
+      <div class="calendar-wrap">
+        <div class="week">
+          <div class="day">
+            <span>6</span>
+            <svg viewBox="0 0 24 24" fill="none" aria-label="どん底">
+              <circle cx="12" cy="12" r="10.4" fill="var(--cp-mood-1)"/>
+              <path d="M8.3 10.2 10.4 11.9 8.3 13.6M15.7 10.2 13.6 11.9 15.7 13.6" stroke="var(--cp-face-contrast)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M10.1 16.9h3.8" stroke="var(--cp-face-contrast)" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+            <small>1.0 · 2件</small>
+          </div>
+          <div class="day">
+            <span>7</span>
+            <svg class="mood-level-2" viewBox="0 0 24 24" fill="none" aria-label="落ち気味">
+              <circle cx="12" cy="12" r="9.4" stroke="currentColor" stroke-width="2.5"/>
+              <circle cx="9.4" cy="10.6" r="1.37" fill="currentColor"/><circle cx="14.6" cy="10.6" r="1.37" fill="currentColor"/>
+              <path d="M9.2 15.5q2.8-2.7 5.6 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+            <small>2.0 · 1件</small>
+          </div>
+          <div class="day">
+            <span>8</span>
+            <svg class="mood-level-3" viewBox="0 0 24 24" fill="none" aria-label="普通">
+              <circle cx="12" cy="12" r="9.4" stroke="currentColor" stroke-width="2.5"/>
+              <circle cx="9.4" cy="10.6" r="1.37" fill="currentColor"/><circle cx="14.6" cy="10.6" r="1.37" fill="currentColor"/>
+              <path d="M9.6 15.2h4.8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+            <small>3.0 · 3件</small>
+          </div>
+          <div class="day">
+            <span>9</span>
+            <svg class="mood-level-4" viewBox="0 0 24 24" fill="none" aria-label="いい感じ">
+              <circle cx="12" cy="12" r="9.4" stroke="currentColor" stroke-width="2.5"/>
+              <circle cx="9.4" cy="10.6" r="1.37" fill="currentColor"/><circle cx="14.6" cy="10.6" r="1.37" fill="currentColor"/>
+              <path d="M9.2 13.8q2.8 2.7 5.6 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+            <small>3.5 · 2件</small>
+          </div>
+          <div class="day">
+            <span>10</span>
+            <svg class="mood-level-5" viewBox="0 0 24 24" fill="none" aria-label="絶好調">
+              <circle cx="12" cy="12" r="9.4" stroke="currentColor" stroke-width="2.5"/>
+              <path d="M8.1 11q1.3-1.7 2.6 0M13.3 11q1.3-1.7 2.6 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+              <path d="M8.8 13.6q3.2 3.7 6.4 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+            <small>5.0 · 1件</small>
+          </div>
+          <div class="day"><span>11</span><small>記録なし</small></div>
+          <div class="day"><span>12</span><small>1件</small></div>
+        </div>
+      </div>
+      <p class="note">絶好調の青から、段階が下がるほど青みを弱めてグレーへ近づけています。数字と読み上げラベルも併用します。</p>
+    </section>
+  </main>
+</body>
+</html>
