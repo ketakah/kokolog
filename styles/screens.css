@@ -40,7 +40,7 @@
   border: 1px solid var(--cp-border);
   border-radius: 0.625rem;
   background: var(--cp-surface);
-  color: var(--cp-app-accent);
+  color: var(--cp-app-accent-text);
   font-size: 0.72rem;
   font-weight: 700;
 }
@@ -60,7 +60,7 @@
   padding: 0 9px;
   border-radius: 0.625rem;
   background: var(--cp-app-accent-soft);
-  color: var(--cp-app-accent);
+  color: var(--cp-app-accent-text);
   font-size: 0.67rem;
   font-weight: 700;
 }
@@ -75,7 +75,7 @@
 
 .timeline-order {
   background: transparent;
-  color: var(--cp-app-accent);
+  color: var(--cp-app-accent-text);
   font-size: 0.76rem;
   font-weight: 700;
 }
@@ -95,7 +95,7 @@
   border: 1px solid var(--cp-border);
   border-radius: 0.625rem;
   background: var(--cp-surface);
-  color: var(--cp-app-accent);
+  color: var(--cp-app-accent-text);
   font-weight: 700;
 }
 
@@ -125,7 +125,7 @@
 }
 
 .timeline-filter-disclosure-value {
-  color: var(--cp-app-accent);
+  color: var(--cp-app-accent-text);
   font-size: 0.7rem;
   font-weight: 600;
 }
@@ -168,7 +168,7 @@
 .timeline-tag-mode button[aria-pressed="true"] {
   border-color: var(--cp-app-accent);
   background: var(--cp-app-accent-soft);
-  color: var(--cp-app-accent);
+  color: var(--cp-app-accent-text);
   box-shadow: inset 0 0 0 1px var(--cp-app-accent);
 }
 
@@ -326,7 +326,7 @@
 }
 
 .favorite-button.is-favorite {
-  color: var(--cp-app-accent);
+  color: var(--cp-app-accent-text);
 }
 
 .editor-content {
@@ -435,7 +435,7 @@
   border: 1px dashed var(--cp-border-strong);
   border-radius: 0.625rem;
   background: transparent;
-  color: var(--cp-app-accent);
+  color: var(--cp-app-accent-text);
   font-size: 0.72rem;
   font-weight: 700;
 }
@@ -513,7 +513,7 @@
   border: 1px solid var(--cp-border);
   border-radius: 0.625rem;
   background: var(--cp-surface);
-  color: var(--cp-app-accent);
+  color: var(--cp-app-accent-text);
   font-weight: 700;
 }
 
@@ -536,7 +536,7 @@
 .tag-choice[aria-pressed="true"] {
   border-color: var(--cp-app-accent);
   background: var(--cp-app-accent-soft);
-  color: var(--cp-app-accent);
+  color: var(--cp-app-accent-text);
   font-weight: 700;
 }
 
@@ -782,7 +782,7 @@
   padding: 0 12px;
   border-radius: 0.625rem;
   background: var(--cp-app-accent-soft);
-  color: var(--cp-app-accent);
+  color: var(--cp-app-accent-text);
   font-size: 0.72rem;
   font-weight: 700;
 }
@@ -969,7 +969,7 @@
 .month-picker-button.is-selected {
   border-color: var(--cp-app-accent);
   background: var(--cp-app-accent-soft);
-  color: var(--cp-app-accent);
+  color: var(--cp-app-accent-text);
   box-shadow: inset 0 0 0 1px var(--cp-app-accent);
 }
 
@@ -1249,7 +1249,7 @@
 }
 
 .setting-value-accent {
-  color: var(--cp-app-accent);
+  color: var(--cp-app-accent-text);
   font-weight: 700;
 }
 

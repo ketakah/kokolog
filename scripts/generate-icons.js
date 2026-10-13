@@ -7,9 +7,9 @@ const zlib = require('zlib');
 const root = path.resolve(__dirname, '..');
 const outputDirectory = path.join(root, 'icons');
 const samplesPerAxis = 4;
-const background = [52, 125, 165, 255];
+const background = [49, 201, 194, 255];
 const bubble = [252, 251, 248, 255];
-const heart = [39, 98, 132, 255];
+const heart = [11, 42, 42, 255];
 
 function createCrcTable() {
   const table = new Uint32Array(256);
