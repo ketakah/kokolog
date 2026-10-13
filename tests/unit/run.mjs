@@ -62,6 +62,11 @@ import {
 import { createTimelineSearchEngine } from '../../src/features/timeline/search-engine.mjs';
 import { createDraftSaveCoordinator } from '../../src/features/editor/draft-save-coordinator.mjs';
 import {
+  calendarSwipeAxis,
+  calendarSwipeDirection,
+  clampCalendarDrag,
+} from '../../src/features/calendar/swipe-gesture.mjs';
+import {
   createPinConfiguration,
   pinConfigurationFingerprint,
   verifyPinConfiguration,
@@ -355,6 +360,41 @@ test('calendar handles leap years and validates date keys', () => {
   assert.strictEqual(daysInMonth('2025-02'), 28);
   assert.strictEqual(isValidDateKey('2024-02-29'), true);
   assert.strictEqual(isValidDateKey('2025-02-29'), false);
+});
+
+test('calendar swipe follows horizontal intent and threshold', () => {
+  assert.strictEqual(calendarSwipeAxis(5, 1), null);
+  assert.strictEqual(calendarSwipeAxis(12, 2), 'horizontal');
+  assert.strictEqual(calendarSwipeAxis(10, 18), 'vertical');
+  assert.strictEqual(
+    calendarSwipeDirection({
+      deltaX: -100,
+      deltaY: 8,
+      elapsedMs: 300,
+      viewportWidth: 390,
+    }),
+    1,
+  );
+  assert.strictEqual(
+    calendarSwipeDirection({
+      deltaX: 30,
+      deltaY: 2,
+      elapsedMs: 40,
+      viewportWidth: 390,
+    }),
+    -1,
+  );
+  assert.strictEqual(
+    calendarSwipeDirection({
+      deltaX: 35,
+      deltaY: 4,
+      elapsedMs: 400,
+      viewportWidth: 390,
+    }),
+    0,
+  );
+  assert.strictEqual(clampCalendarDrag(-500, 390), -390);
+  assert.strictEqual(clampCalendarDrag(500, 390), 390);
 });
 
 test('record validation accepts body-only and mood-only records', () => {

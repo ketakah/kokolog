@@ -448,6 +448,60 @@ export async function renderTimelineView(context) {
       fromInput,
       toInput,
     ]);
+    const periodSummary = element('span', {
+      className: 'timeline-filter-disclosure-value',
+    });
+    const periodControls = element('div', {
+      className: 'timeline-filter-period',
+    }, [
+      dateRow,
+      button('期間をクリア', {
+        className: 'text-button',
+        on: {
+          click: () => {
+            fromInput.value = '';
+            toInput.value = '';
+            updatePeriodSummary();
+          },
+        },
+      }),
+    ]);
+    periodControls.hidden = true;
+    const periodButton = button('', {
+      className: 'timeline-filter-disclosure',
+      attributes: {
+        'aria-expanded': 'false',
+        'aria-controls': 'timeline-filter-period',
+      },
+    }, [
+      element('span', { text: '期間' }),
+      periodSummary,
+    ]);
+    periodControls.id = 'timeline-filter-period';
+
+    function updatePeriodSummary() {
+      periodSummary.textContent =
+        fromInput.value || toInput.value
+          ? `${fromInput.value || '最初'}〜${toInput.value || '最新'}`
+          : '指定なし　›';
+    }
+
+    periodButton.addEventListener('click', () => {
+      const willOpen = periodControls.hidden;
+      periodControls.hidden = !willOpen;
+      periodButton.setAttribute('aria-expanded', String(willOpen));
+      if (willOpen) {
+        fromInput.focus({ preventScroll: true });
+        try {
+          fromInput.showPicker?.();
+        } catch (error) {
+          console.debug('日付選択UIを自動で開けませんでした。', error);
+        }
+      }
+    });
+    fromInput.addEventListener('change', updatePeriodSummary);
+    toInput.addEventListener('change', updatePeriodSummary);
+    updatePeriodSummary();
     const moodRow = element('div', {
       className: 'timeline-filter-moods',
       attributes: { role: 'group', 'aria-label': '調子' },
@@ -597,8 +651,8 @@ export async function renderTimelineView(context) {
     });
 
     body.append(
-      element('span', { className: 'field-label', text: '期間' }),
-      dateRow,
+      periodButton,
+      periodControls,
       element('span', { className: 'field-label', text: '調子' }),
       moodRow,
       favoriteLabel,
@@ -617,7 +671,8 @@ export async function renderTimelineView(context) {
     );
     activeSheet = element('div', {}, [backdrop, sheet]);
     document.body.append(activeSheet);
-    queueMicrotask(() => fromInput.focus());
+    sheet.tabIndex = -1;
+    queueMicrotask(() => sheet.focus());
   }
 
   filterButton.addEventListener('click', openFilterSheet);

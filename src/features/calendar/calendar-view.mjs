@@ -18,8 +18,14 @@ import {
   createScreen,
   createTopBar,
 } from '../../ui/layout.mjs';
+import {
+  calendarSwipeAxis,
+  calendarSwipeDirection,
+  clampCalendarDrag,
+} from './swipe-gesture.mjs';
 
 const WEEKDAYS = ['月', '火', '水', '木', '金', '土', '日'];
+const SWIPE_SETTLE_MS = 220;
 
 function resolveMonth(query) {
   const requested = query.get('month');
@@ -63,10 +69,13 @@ function createDayMap(records) {
 
 export async function renderCalendarView(context, query) {
   const month = resolveMonth(query);
-  const [records] = await Promise.all([
+  const previousMonth = shiftYearMonth(month, -1);
+  const nextMonth = shiftYearMonth(month, 1);
+  const [previousRecords, records, nextRecords] = await Promise.all([
+    context.services.records.listByMonth(previousMonth),
     context.services.records.listByMonth(month),
+    context.services.records.listByMonth(nextMonth),
   ]);
-  const dayMap = createDayMap(records);
   const summary = calculateMonthMoodSummary(records, month);
   const todayKey = formatLocalDateTime(new Date()).slice(0, 10);
   const currentMonth = currentYearMonth();
@@ -224,106 +233,192 @@ export async function renderCalendarView(context, query) {
   WEEKDAYS.forEach((weekday) =>
     weekdays.append(element('span', { text: weekday })),
   );
-  const grid = element('div', { className: 'calendar-grid' });
-
-  for (const cell of createCalendarCells(month)) {
-    const data = dayMap.get(cell.dateKey);
-    const moodValue =
-      data?.average === null || data?.average === undefined
-        ? null
-        : Math.min(5, Math.max(1, Math.round(data.average)));
-    const labels = [
-      cell.dateKey,
-      data ? `${data.count}件` : '記録なし',
-      data?.average !== null && data?.average !== undefined
-        ? `平均調子${data.average}`
-        : '',
-    ].filter(Boolean);
-    const cellButton = button('', {
-      className: [
-        'calendar-cell',
-        cell.inCurrentMonth ? '' : 'is-other-month',
-        cell.dateKey === todayKey ? 'is-today' : '',
-      ]
-        .filter(Boolean)
-        .join(' '),
-      attributes: {
-        'aria-label': labels.join('、'),
-      },
-      on: {
-        click: () => {
-          if (Date.now() < suppressCellClickUntil) {
-            return;
-          }
-          context.router.navigate(`/day/${cell.dateKey}`);
+  function createMonthSlide(displayMonth, displayRecords, interactive) {
+    const displayDayMap = createDayMap(displayRecords);
+    const grid = element('div', { className: 'calendar-grid' });
+    for (const cell of createCalendarCells(displayMonth)) {
+      const data = displayDayMap.get(cell.dateKey);
+      const moodValue =
+        data?.average === null || data?.average === undefined
+          ? null
+          : Math.min(5, Math.max(1, Math.round(data.average)));
+      const labels = [
+        cell.dateKey,
+        data ? `${data.count}件` : '記録なし',
+        data?.average !== null && data?.average !== undefined
+          ? `平均調子${data.average}`
+          : '',
+      ].filter(Boolean);
+      const cellButton = button('', {
+        className: [
+          'calendar-cell',
+          cell.inCurrentMonth ? '' : 'is-other-month',
+          cell.dateKey === todayKey ? 'is-today' : '',
+        ]
+          .filter(Boolean)
+          .join(' '),
+        attributes: {
+          'aria-label': labels.join('、'),
+          ...(interactive ? {} : { tabindex: '-1' }),
         },
+        on: interactive
+          ? {
+              click: () => {
+                if (Date.now() < suppressCellClickUntil) {
+                  return;
+                }
+                context.router.navigate(`/day/${cell.dateKey}`);
+              },
+            }
+          : {},
+      });
+      cellButton.append(
+        element('span', { className: 'calendar-date', text: cell.day }),
+      );
+      if (data?.count) {
+        cellButton.append(
+          element('span', {
+            className: 'calendar-count',
+            text: data.count,
+            attributes: { 'aria-hidden': 'true' },
+          }),
+        );
+      }
+      if (moodValue !== null) {
+        const mood = createMoodIcon(moodValue);
+        mood.classList.add('calendar-mood');
+        cellButton.append(
+          mood,
+          element('span', {
+            className: 'calendar-average',
+            text: data.average.toFixed(1),
+            attributes: { 'aria-hidden': 'true' },
+          }),
+        );
+      } else if (data?.count) {
+        cellButton.append(
+          element('span', {
+            className: 'calendar-no-mood',
+            text: '調子なし',
+            attributes: { 'aria-hidden': 'true' },
+          }),
+        );
+      }
+      grid.append(cellButton);
+    }
+    return element('div', {
+      className: 'calendar-month-slide',
+      attributes: {
+        'aria-label': formatYearMonthTitle(displayMonth),
+        ...(interactive ? {} : { 'aria-hidden': 'true' }),
       },
-    });
-    cellButton.append(
-      element('span', { className: 'calendar-date', text: cell.day }),
-    );
-    if (data?.count) {
-      cellButton.append(
-        element('span', {
-          className: 'calendar-count',
-          text: data.count,
-          attributes: { 'aria-hidden': 'true' },
-        }),
-      );
-    }
-    if (moodValue !== null) {
-      const mood = createMoodIcon(moodValue);
-      mood.classList.add('calendar-mood');
-      cellButton.append(
-        mood,
-        element('span', {
-          className: 'calendar-average',
-          text: data.average.toFixed(1),
-          attributes: { 'aria-hidden': 'true' },
-        }),
-      );
-    } else if (data?.count) {
-      cellButton.append(
-        element('span', {
-          className: 'calendar-no-mood',
-          text: '調子なし',
-          attributes: { 'aria-hidden': 'true' },
-        }),
-      );
-    }
-    grid.append(cellButton);
+    }, [grid]);
   }
 
+  const swipeViewport = element('div', {
+    className: 'calendar-swipe-viewport',
+  });
+  const swipeTrack = element('div', {
+    className: 'calendar-swipe-track',
+  }, [
+    createMonthSlide(previousMonth, previousRecords, false),
+    createMonthSlide(month, records, true),
+    createMonthSlide(nextMonth, nextRecords, false),
+  ]);
+  swipeViewport.append(swipeTrack);
+
   let pointerStart = null;
-  grid.addEventListener('pointerdown', (event) => {
-    if (!event.isPrimary) {
+  let navigationStarted = false;
+
+  function setDragOffset(offset, settling = false) {
+    swipeTrack.classList.toggle('is-settling', settling);
+    swipeTrack.style.setProperty('--calendar-drag-x', `${offset}px`);
+  }
+
+  function finishGesture(direction) {
+    const viewportWidth = swipeViewport.getBoundingClientRect().width;
+    const targetOffset =
+      direction === 1 ? -viewportWidth : direction === -1 ? viewportWidth : 0;
+    setDragOffset(targetOffset, true);
+    if (direction === 0) {
+      setTimeout(() => setDragOffset(0, false), SWIPE_SETTLE_MS);
+      return;
+    }
+    navigationStarted = true;
+    suppressCellClickUntil = Date.now() + SWIPE_SETTLE_MS + 250;
+    setTimeout(() => {
+      context.router.navigate(
+        `/calendar?month=${shiftYearMonth(month, direction)}`,
+      );
+    }, SWIPE_SETTLE_MS);
+  }
+
+  swipeViewport.addEventListener('pointerdown', (event) => {
+    if (!event.isPrimary || event.button !== 0 || navigationStarted) {
       return;
     }
     pointerStart = {
       id: event.pointerId,
       x: event.clientX,
       y: event.clientY,
+      lastX: event.clientX,
+      lastY: event.clientY,
+      startedAt: performance.now(),
+      axis: null,
     };
+    swipeViewport.setPointerCapture?.(event.pointerId);
+    setDragOffset(0, false);
   });
-  grid.addEventListener('pointerup', (event) => {
+
+  swipeViewport.addEventListener('pointermove', (event) => {
+    if (!pointerStart || pointerStart.id !== event.pointerId) {
+      return;
+    }
+    pointerStart.lastX = event.clientX;
+    pointerStart.lastY = event.clientY;
+    const deltaX = event.clientX - pointerStart.x;
+    const deltaY = event.clientY - pointerStart.y;
+    if (!pointerStart.axis) {
+      pointerStart.axis = calendarSwipeAxis(deltaX, deltaY);
+    }
+    if (pointerStart.axis !== 'horizontal') {
+      return;
+    }
+    event.preventDefault();
+    suppressCellClickUntil = Date.now() + 400;
+    setDragOffset(
+      clampCalendarDrag(
+        deltaX,
+        swipeViewport.getBoundingClientRect().width,
+      ),
+      false,
+    );
+  });
+
+  swipeViewport.addEventListener('pointerup', (event) => {
     if (!pointerStart || pointerStart.id !== event.pointerId) {
       pointerStart = null;
       return;
     }
-    const deltaX = event.clientX - pointerStart.x;
-    const deltaY = event.clientY - pointerStart.y;
+    const deltaX = pointerStart.lastX - pointerStart.x;
+    const deltaY = pointerStart.lastY - pointerStart.y;
+    const direction = calendarSwipeDirection({
+      deltaX,
+      deltaY,
+      elapsedMs: performance.now() - pointerStart.startedAt,
+      viewportWidth: swipeViewport.getBoundingClientRect().width,
+    });
     pointerStart = null;
-    if (Math.abs(deltaX) >= 50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.4) {
-      suppressCellClickUntil = Date.now() + 400;
-      const amount = deltaX < 0 ? 1 : -1;
-      context.router.navigate(`/calendar?month=${shiftYearMonth(month, amount)}`);
-    }
-  });
-  grid.addEventListener('pointercancel', () => {
-    pointerStart = null;
+    swipeViewport.releasePointerCapture?.(event.pointerId);
+    finishGesture(direction);
   });
 
-  panel.append(weekdays, grid);
+  swipeViewport.addEventListener('pointercancel', () => {
+    pointerStart = null;
+    finishGesture(0);
+  });
+
+  panel.append(weekdays, swipeViewport);
   const summaryCard = element('section', {
     className: 'calendar-summary card',
     attributes: { 'aria-label': `${formatYearMonthTitle(month)}のまとめ` },

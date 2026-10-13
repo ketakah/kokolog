@@ -37,6 +37,7 @@ let renderSequence = 0;
 let routerStarted = false;
 let appLocked = false;
 let hiddenAt = null;
+const ROUTE_LOADING_DELAY_MS = 150;
 
 function showPrivacyCover() {
   if (!privacyCover) {
@@ -231,9 +232,14 @@ async function resolveView(route) {
 async function renderRoute(route) {
   currentRoute = route;
   const sequence = ++renderSequence;
-  renderLoading();
+  const loadingTimer = setTimeout(() => {
+    if (sequence === renderSequence) {
+      renderLoading();
+    }
+  }, ROUTE_LOADING_DELAY_MS);
   try {
     const view = await resolveView(route);
+    clearTimeout(loadingTimer);
     if (!view || sequence !== renderSequence) {
       view?.cleanup?.();
       return;
@@ -242,7 +248,12 @@ async function renderRoute(route) {
     currentCleanup = view.cleanup || null;
     currentBeforeAppUpdate = view.beforeAppUpdate || null;
     view.afterRender?.();
+    if (route.name === 'record-detail') {
+      globalThis.scrollTo(0, 0);
+      requestAnimationFrame(() => globalThis.scrollTo(0, 0));
+    }
   } catch (error) {
+    clearTimeout(loadingTimer);
     if (sequence !== renderSequence) {
       return;
     }

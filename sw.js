@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'kokolog-';
-const CACHE_NAME = 'kokolog-app-v22';
+const CACHE_NAME = 'kokolog-app-v24';
 const APP_SHELL = Object.freeze([
   './',
   './index.html',
@@ -40,6 +40,7 @@ const APP_SHELL = Object.freeze([
   './src/domain/statistics.mjs',
   './src/domain/storage.mjs',
   './src/features/calendar/calendar-view.mjs',
+  './src/features/calendar/swipe-gesture.mjs',
   './src/features/calendar/day-view.mjs',
   './src/features/detail/detail-view.mjs',
   './src/features/delete-all/delete-all-view.mjs',

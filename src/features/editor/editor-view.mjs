@@ -38,6 +38,21 @@ function hasMeaningfulDraft(fields) {
   );
 }
 
+function sameEditableFields(left, right) {
+  const leftTagIds = [...left.tagIds].sort();
+  const rightTagIds = [...right.tagIds].sort();
+  return (
+    left.title === right.title &&
+    left.body === right.body &&
+    left.mood === right.mood &&
+    left.favorite === right.favorite &&
+    left.occurredAtLocal === right.occurredAtLocal &&
+    left.occurredUtcOffsetMinutes === right.occurredUtcOffsetMinutes &&
+    leftTagIds.length === rightTagIds.length &&
+    leftTagIds.every((tagId, index) => tagId === rightTagIds[index])
+  );
+}
+
 export async function renderEditorView(context, options = {}) {
   const recordId = options.recordId || null;
   const existing = recordId ? await context.services.records.get(recordId) : null;
@@ -159,9 +174,17 @@ export async function renderEditorView(context, options = {}) {
   }
 
   function updateSaveState() {
-    const validation = validateRecordInput(getFields(), { now: new Date() });
-    saveButton.disabled = !validation.valid || saving;
-    saveButton.title = validation.valid ? '' : validation.errors[0];
+    const fields = getFields();
+    const validation = validateRecordInput(fields, { now: new Date() });
+    const unchanged =
+      Boolean(existing) &&
+      sameEditableFields(fields, fieldsFromRecord(existing));
+    saveButton.disabled = !validation.valid || saving || unchanged;
+    saveButton.title = !validation.valid
+      ? validation.errors[0]
+      : unchanged
+        ? '変更はありません'
+        : '';
   }
 
   function freezeEditor() {
