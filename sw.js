@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'kokolog-';
-const CACHE_NAME = 'kokolog-app-v21';
+const CACHE_NAME = 'kokolog-app-v22';
 const APP_SHELL = Object.freeze([
   './',
   './index.html',

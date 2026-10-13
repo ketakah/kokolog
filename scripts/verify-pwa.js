@@ -72,6 +72,16 @@ assert.ok(
 );
 assert.ok(html.includes('rel="apple-touch-icon"'));
 
+const screenStyles = read('styles/screens.css');
+const excerptRule = screenStyles.match(
+  /\.record-excerpt\s*\{([\s\S]*?)\}/u,
+)?.[1];
+assert.ok(excerptRule, 'Timeline excerpt style is missing');
+assert.match(excerptRule, /-webkit-line-clamp:\s*4/u);
+assert.match(excerptRule, /white-space:\s*normal/u);
+assert.match(excerptRule, /min-height:\s*0/u);
+assert.match(excerptRule, /max-height:\s*calc\(1\.55em \* 4\)/u);
+
 const serviceWorker = read('sw.js');
 const appShellMatch = serviceWorker.match(
   /const APP_SHELL = Object\.freeze\((\[[\s\S]*?\])\);/,
