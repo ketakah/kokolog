@@ -23,6 +23,7 @@ import { cancelDeletionPreparation } from './pwa/service-worker.mjs';
 import { button, element } from './ui/dom.mjs';
 import { showToast } from './ui/toast.mjs';
 import { PinService } from './security/pin-service.mjs';
+import { IdleLockController } from './security/idle-lock-controller.mjs';
 
 const root = document.getElementById('app');
 const privacyCover = document.getElementById('privacy-cover');
@@ -36,8 +37,23 @@ let currentRoute = null;
 let renderSequence = 0;
 let routerStarted = false;
 let appLocked = false;
-let hiddenAt = null;
+let lockOnResume = false;
+let idleLockSuspended = false;
 const ROUTE_LOADING_DELAY_MS = 150;
+const idleLock = new IdleLockController({
+  getDelay: () =>
+    idleLockSuspended || appLocked
+      ? 0
+      : pinService?.getAutoLockMsInMemory() || 0,
+  onLock: () => lockApp(),
+  onError: (error) => {
+    console.error('無操作ロックに失敗しました。', error);
+    showToast(`無操作ロックに失敗しました: ${error.message}`, {
+      error: true,
+      duration: 6000,
+    });
+  },
+});
 
 function showPrivacyCover() {
   if (!privacyCover) {
@@ -148,15 +164,19 @@ const router = createRouter((route) => renderRoute(route));
 
 function startRouter() {
   appLocked = false;
+  idleLockSuspended = false;
   if (!routerStarted) {
     router.start();
     routerStarted = true;
   } else {
     router.refresh();
   }
+  idleLock.start();
 }
 
 async function lockApp() {
+  idleLock.stop();
+  idleLockSuspended = false;
   if (appLocked || !pinService || !(await pinService.isEnabled())) {
     return;
   }
@@ -183,6 +203,15 @@ function createContext() {
     theme: themeManager,
     lock: {
       lockNow: () => lockApp(),
+      resetIdle: () => idleLock.reset(),
+      pauseIdle: () => {
+        idleLockSuspended = true;
+        idleLock.stop();
+      },
+      resumeIdle: () => {
+        idleLockSuspended = false;
+        idleLock.reset();
+      },
     },
     refresh: () => renderCurrentRoute(),
   };
@@ -354,27 +383,36 @@ async function start() {
       });
     }
 
-    document.addEventListener('visibilitychange', async () => {
-      if (document.visibilityState === 'hidden') {
-        hiddenAt = Date.now();
-        if (pinService?.isEnabledInMemory()) {
-          showPrivacyCover();
-        }
+    function prepareBackgroundLock(renderLock = true) {
+      idleLock.stop();
+      if (!pinService?.isEnabledInMemory()) {
         return;
       }
-      if (!hiddenAt || appLocked || !pinService) {
-        hiddenAt = null;
+      lockOnResume = true;
+      showPrivacyCover();
+      if (renderLock) {
+        lockApp().catch((error) => {
+          console.error('バックグラウンド移行時にロックできませんでした。', error);
+        });
+      }
+    }
+
+    async function ensureResumeLock() {
+      if (!pinService) {
         hidePrivacyCover();
         return;
       }
-      const elapsed = Date.now() - hiddenAt;
-      hiddenAt = null;
       let safeToReveal = false;
       try {
         const config = await pinService.getConfig();
-        if (config && elapsed >= config.autoLockMs) {
+        if (config && lockOnResume) {
           await lockApp();
+        } else if (!config && appLocked) {
+          startRouter();
+        } else if (config && !appLocked) {
+          idleLock.start();
         }
+        lockOnResume = false;
         safeToReveal = true;
       } catch (error) {
         console.error('復帰時のPIN設定を確認できませんでした。', error);
@@ -387,7 +425,47 @@ async function start() {
           hidePrivacyCover();
         }
       }
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        prepareBackgroundLock(true);
+      } else {
+        ensureResumeLock();
+      }
     });
+    globalThis.addEventListener('pagehide', () => prepareBackgroundLock(false));
+    globalThis.addEventListener('pageshow', () => {
+      if (document.visibilityState === 'visible' && lockOnResume) {
+        ensureResumeLock();
+      }
+    });
+
+    const activityOptions = { capture: true, passive: true };
+    for (const eventName of ['pointerdown', 'touchstart', 'wheel']) {
+      document.addEventListener(eventName, () => {
+        if (
+          document.visibilityState === 'visible' &&
+          !appLocked &&
+          pinService?.isEnabledInMemory() &&
+          !idleLockSuspended
+        ) {
+          idleLock.reset();
+        }
+      }, activityOptions);
+    }
+    for (const eventName of ['keydown', 'input']) {
+      document.addEventListener(eventName, () => {
+        if (
+          document.visibilityState === 'visible' &&
+          !appLocked &&
+          pinService?.isEnabledInMemory() &&
+          !idleLockSuspended
+        ) {
+          idleLock.reset();
+        }
+      }, true);
+    }
     globalThis.addEventListener('offline', () => {
       showToast('オフラインです。端末内の記録は引き続き利用できます。', {
         duration: 5000,

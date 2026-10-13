@@ -713,6 +713,11 @@
   line-height: 1.6;
 }
 
+.pin-panel .pin-help {
+  margin: 0 0 8px;
+  font-size: 0.76rem;
+}
+
 .pin-field,
 .pin-select {
   min-height: 46px;

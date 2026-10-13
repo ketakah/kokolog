@@ -72,6 +72,7 @@ import {
   verifyPinConfiguration,
   verifyRecoveryConfiguration,
 } from '../../src/security/pin-service.mjs';
+import { IdleLockController } from '../../src/security/idle-lock-controller.mjs';
 
 if (!globalThis.crypto) {
   globalThis.crypto = webcrypto;
@@ -282,6 +283,44 @@ test('PIN verifier rate-limits after five failures', async () => {
   assert.strictEqual(duringLock.success, false);
   assert.strictEqual(duringLock.locked, true);
   assert.strictEqual(duringLock.waitMs, 20000);
+});
+
+test('idle lock resets on activity and disables for close-only mode', async () => {
+  let delay = 60000;
+  let nextTimerId = 0;
+  let lockCount = 0;
+  const timers = new Map();
+  const cleared = [];
+  const controller = new IdleLockController({
+    getDelay: () => delay,
+    onLock: () => {
+      lockCount += 1;
+    },
+    setTimer: (callback, milliseconds) => {
+      nextTimerId += 1;
+      timers.set(nextTimerId, { callback, milliseconds });
+      return nextTimerId;
+    },
+    clearTimer: (timerId) => {
+      cleared.push(timerId);
+      timers.delete(timerId);
+    },
+  });
+
+  assert.strictEqual(controller.start(), true);
+  assert.strictEqual(timers.get(1).milliseconds, 60000);
+  assert.strictEqual(controller.reset(), true);
+  assert.deepStrictEqual(cleared, [1]);
+  assert.strictEqual(timers.get(2).milliseconds, 60000);
+
+  timers.get(2).callback();
+  await Promise.resolve();
+  assert.strictEqual(lockCount, 1);
+  assert.strictEqual(controller.isArmed(), false);
+
+  delay = 0;
+  assert.strictEqual(controller.start(), false);
+  assert.strictEqual(controller.isArmed(), false);
 });
 
 test('draft save coordinator preserves an edit made during an in-flight save', async () => {

@@ -46,6 +46,7 @@ assert.strictEqual(manifest.id, './');
 assert.strictEqual(manifest.start_url, './#/timeline');
 assert.strictEqual(manifest.scope, './');
 assert.strictEqual(manifest.display, 'standalone');
+assert.strictEqual(manifest.theme_color, '#347da5');
 
 for (const icon of manifest.icons) {
   const relativePath = icon.src.replace(/^\.\//, '');
@@ -73,6 +74,9 @@ assert.ok(
 assert.ok(html.includes('rel="apple-touch-icon"'));
 
 const screenStyles = read('styles/screens.css');
+const themeTokens = read('styles/tokens.css');
+assert.match(themeTokens, /--cp-app-accent:\s*#347da5/u);
+assert.match(themeTokens, /--cp-app-accent:\s*#86c7e5/u);
 const excerptRule = screenStyles.match(
   /\.record-excerpt\s*\{([\s\S]*?)\}/u,
 )?.[1];

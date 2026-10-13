@@ -3,10 +3,10 @@ import { createScreen, createTopBar } from '../../ui/layout.mjs';
 import { showToast } from '../../ui/toast.mjs';
 
 const AUTO_LOCK_OPTIONS = [
-  [0, 'すぐにロック'],
-  [60000, '1分'],
-  [300000, '5分'],
-  [900000, '15分'],
+  [0, 'アプリを閉じた時だけ'],
+  [60000, '無操作1分'],
+  [300000, '無操作5分'],
+  [900000, '無操作15分'],
 ];
 
 function createAutoLockSelect(value) {
@@ -37,7 +37,10 @@ function renderRecoveryCode(content, recoveryCode, context) {
     className: 'pin-primary',
     attributes: { disabled: '' },
     on: {
-      click: () => context.router.navigate('/settings', { replace: true }),
+      click: () => {
+        context.lock.resumeIdle();
+        context.router.navigate('/settings', { replace: true });
+      },
     },
   });
   saved.addEventListener('change', () => {
@@ -136,6 +139,7 @@ export async function renderPinSettingsView(context) {
             const result = await context.pin.enable(pin.value, {
               autoLockMs: Number(autoLock.value),
             });
+            context.lock.pauseIdle();
             renderRecoveryCode(content, result.recoveryCode, context);
           } catch (error) {
             submit.disabled = false;
@@ -153,7 +157,11 @@ export async function renderPinSettingsView(context) {
         element('label', { className: 'field-label', text: 'PIN' }),
         pin,
         confirmation,
-        element('label', { className: 'field-label', text: '自動ロック' }),
+        element('label', { className: 'field-label', text: '無操作でロック' }),
+        element('p', {
+          className: 'pin-help',
+          text: '操作中はタイマーを延長します。設定に関係なく、アプリを閉じたり他のアプリへ移った後は次回表示時にロックします。',
+        }),
         autoLock,
         submit,
       ]),
@@ -163,6 +171,7 @@ export async function renderPinSettingsView(context) {
     autoLock.addEventListener('change', async () => {
       try {
         await context.pin.setAutoLock(Number(autoLock.value));
+        context.lock.resetIdle();
         showToast('自動ロック時間を変更しました。');
       } catch (error) {
         showToast(error.message, { error: true });
@@ -212,7 +221,11 @@ export async function renderPinSettingsView(context) {
         element('p', {
           text: '端末のロック解除後に他人がアプリを開くことを防ぐための簡易ロックです。',
         }),
-        element('label', { className: 'field-label', text: '自動ロック' }),
+        element('label', { className: 'field-label', text: '無操作でロック' }),
+        element('p', {
+          className: 'pin-help',
+          text: 'タップ、文字入力、スクロールでタイマーを延長します。アプリを閉じたり他のアプリへ移ると、時間に関係なく次回表示時にロックします。',
+        }),
         autoLock,
         button('今すぐロック', {
           className: 'pin-primary',

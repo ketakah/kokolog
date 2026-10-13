@@ -198,12 +198,14 @@ export class PinService {
   constructor(settingsRepository) {
     this.settings = settingsRepository;
     this.enabled = null;
+    this.config = null;
   }
 
   async getConfig() {
     const config = await this.settings.get(PIN_CONFIG_KEY, null);
     this.enabled = Boolean(config?.enabled);
-    return this.enabled ? config : null;
+    this.config = this.enabled ? config : null;
+    return this.config;
   }
 
   async isEnabled() {
@@ -214,10 +216,15 @@ export class PinService {
     return this.enabled === true;
   }
 
+  getAutoLockMsInMemory() {
+    return Number(this.config?.autoLockMs || 0);
+  }
+
   async enable(pin, options = {}) {
     const result = await createPinConfiguration(pin, options);
     await this.settings.set(PIN_CONFIG_KEY, result.config);
     this.enabled = true;
+    this.config = result.config;
     return result;
   }
 
@@ -228,6 +235,7 @@ export class PinService {
     }
     const result = await verifyPinConfiguration(config, pin, options);
     await this.settings.set(PIN_CONFIG_KEY, result.config);
+    this.config = result.config;
     return result;
   }
 
@@ -240,9 +248,11 @@ export class PinService {
     if (result.success) {
       await this.settings.set(PIN_CONFIG_KEY, null);
       this.enabled = false;
+      this.config = null;
       return { ...result, disabled: true };
     }
     await this.settings.set(PIN_CONFIG_KEY, result.config);
+    this.config = result.config;
     return result;
   }
 
@@ -253,6 +263,7 @@ export class PinService {
     }
     await this.settings.set(PIN_CONFIG_KEY, null);
     this.enabled = false;
+    this.config = null;
     return { success: true, disabled: true, waitMs: 0 };
   }
 
@@ -271,6 +282,7 @@ export class PinService {
       updatedAt: new Date().toISOString(),
     };
     await this.settings.set(PIN_CONFIG_KEY, updated);
+    this.config = updated;
     return updated;
   }
 }
