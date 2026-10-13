@@ -230,8 +230,17 @@ meta CSPを追加し、スクリプト、スタイル、画像、Worker、接続
 
 次は実装時に別途レビューする。
 
-- GitHub Actionsの公開ファイル許可リスト
 - セマンティック検索モデル
+
+### GitHub Pages公開
+
+- 公開対象は許可リストから生成
+- 公開成果物に実記録、Notion元データ、移行レポート、内部検証記録を含めない
+- GitHub Actionsでテスト成功後だけPagesへデプロイ
+- Service Workerのキャッシュ識別子をコミットSHAへ置換
+- `robots.txt`とHTML metaで検索エンジン登録を拒否
+- 公開URLのCSP、Manifest、installability、Service Worker scope、App Shell件数を確認
+- 公開環境の一時検証記録は全削除し、IndexedDB 0件へ戻した
 
 ## 最終状態
 

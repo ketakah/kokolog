@@ -2,9 +2,13 @@
 
 気持ち・思考を記録し、カレンダー、タイムライン、検索、統計で振り返る個人用PWAのプロジェクトです。
 
+[![Deploy Kokolog to GitHub Pages](https://github.com/ketakah/kokolog/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/ketakah/kokolog/actions/workflows/deploy-pages.yml)
+
+公開URL: <https://ketakah.github.io/kokolog/>
+
 ## 現在の状態
 
-**M1〜M10のローカル実装とブラウザ検証まで完了しています。**
+**M1〜M10の実装、GitHub Pages公開、デスクトップブラウザ検証まで完了しています。**
 
 現在動作するもの:
 
@@ -72,7 +76,7 @@
 - 全削除時の他タブ機密DOM・検索Worker・DB接続の無効化
 - 全削除後のService Worker・App Shell自己修復
 
-Notionの56件はローカル開発環境へ検証済みで取り込み、利用者が保存した完全JSONも再検証済みです。Service Worker、オフライン動作、端末管理機能はローカルで検証済みです。専用オリジンへの公開とiPhone実機検証はまだ行っていません。
+Notionの56件はローカル開発環境へ検証済みで取り込み、利用者が保存した完全JSONも再検証済みです。公開サイトには実記録を含めていません。Service Worker、オフライン動作、端末管理機能は公開URLでも検証済みです。iPhone実機への導入と56件JSONの復元はまだ行っていません。
 
 ## ローカル起動
 
@@ -130,5 +134,24 @@ Notionの元ZIP、変換後JSON、実際の記録、照合レポートは、こ�
 ## 次の作業
 
 1. 非公開のNotion移行レポートを目視確認
-2. GitHubリポジトリと公開ワークフローを作成
-3. iPhone 17 / iOS 27.0.1でホーム画面追加・機内モード・更新を検証
+2. iPhone 17 / iOS 27.0.1でホーム画面へ追加
+3. iPhoneで完全JSONからNotion由来56件を復元
+4. 機内モードで起動・閲覧・作成・検索・統計を確認
+5. iPhoneで更新通知とプライバシーカバーを確認
+
+## GitHub Pagesへの公開
+
+`main`へのpushで次を自動実行します。
+
+1. 単体テストとNotion変換テスト
+2. PWAとService Workerの検証
+3. 公開許可リストから`dist-pages/`を生成
+4. 実データ・移行資料・設計資料が成果物にないことを検証
+5. GitHub Pagesへデプロイ
+
+```powershell
+npm run build:pages
+npm run test:pages
+```
+
+公開成果物にはアプリ実行に必要なHTML、CSS、JavaScript、Manifest、アイコンだけを含めます。
