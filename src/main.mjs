@@ -39,6 +39,7 @@ let currentRoute = null;
 let renderSequence = 0;
 let routerStarted = false;
 let appLocked = false;
+let lockRenderPromise = null;
 let lockOnResume = false;
 let idleLockSuspended = false;
 const ROUTE_LOADING_DELAY_MS = 150;
@@ -179,22 +180,47 @@ function startRouter() {
 async function lockApp() {
   idleLock.stop();
   idleLockSuspended = false;
-  if (appLocked || !pinService || !(await pinService.isEnabled())) {
-    return;
+  if (lockRenderPromise) {
+    return lockRenderPromise;
   }
-  appLocked = true;
-  if (routerStarted) {
-    router.stop();
-    routerStarted = false;
+  if (appLocked) {
+    return true;
   }
-  const view = await renderLockView(pinService, {
-    deviceAuth: deviceAuthService,
-    onUnlock: () => startRouter(),
-  });
-  replaceRoot(view.element);
-  currentCleanup = view.cleanup || null;
-  currentBeforeAppUpdate = view.beforeAppUpdate || null;
-  view.afterRender?.();
+  const operation = (async () => {
+    if (!pinService || !(await pinService.isEnabled())) {
+      return false;
+    }
+    appLocked = true;
+    renderSequence += 1;
+    if (routerStarted) {
+      router.stop();
+      routerStarted = false;
+    }
+    const view = await renderLockView(pinService, {
+      deviceAuth: deviceAuthService,
+      onUnlock: () => startRouter(),
+    });
+    if (!appLocked) {
+      view.cleanup?.();
+      return false;
+    }
+    replaceRoot(view.element);
+    currentCleanup = view.cleanup || null;
+    currentBeforeAppUpdate = view.beforeAppUpdate || null;
+    view.afterRender?.();
+    return true;
+  })();
+  lockRenderPromise = operation;
+  try {
+    return await operation;
+  } catch (error) {
+    appLocked = false;
+    throw error;
+  } finally {
+    if (lockRenderPromise === operation) {
+      lockRenderPromise = null;
+    }
+  }
 }
 
 function createContext() {
@@ -217,7 +243,8 @@ function createContext() {
         idleLock.reset();
       },
     },
-    refresh: () => renderCurrentRoute(),
+    refresh: () =>
+      appLocked ? Promise.resolve() : renderCurrentRoute(),
   };
 }
 
@@ -273,7 +300,7 @@ async function renderRoute(route) {
   try {
     const view = await resolveView(route);
     clearTimeout(loadingTimer);
-    if (!view || sequence !== renderSequence) {
+    if (!view || sequence !== renderSequence || appLocked) {
       view?.cleanup?.();
       return;
     }
@@ -295,7 +322,7 @@ async function renderRoute(route) {
 }
 
 function renderCurrentRoute() {
-  if (!currentRoute) {
+  if (!currentRoute || appLocked) {
     return Promise.resolve();
   }
   return renderRoute(currentRoute);
@@ -388,18 +415,13 @@ async function start() {
       });
     }
 
-    function prepareBackgroundLock(renderLock = true) {
+    function prepareBackgroundLock() {
       idleLock.stop();
       if (!pinService?.isEnabledInMemory()) {
         return;
       }
       lockOnResume = true;
       showPrivacyCover();
-      if (renderLock) {
-        lockApp().catch((error) => {
-          console.error('バックグラウンド移行時にロックできませんでした。', error);
-        });
-      }
     }
 
     async function ensureResumeLock() {
@@ -434,12 +456,12 @@ async function start() {
 
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') {
-        prepareBackgroundLock(true);
+        prepareBackgroundLock();
       } else {
         ensureResumeLock();
       }
     });
-    globalThis.addEventListener('pagehide', () => prepareBackgroundLock(false));
+    globalThis.addEventListener('pagehide', prepareBackgroundLock);
     globalThis.addEventListener('pageshow', () => {
       if (document.visibilityState === 'visible' && lockOnResume) {
         ensureResumeLock();
