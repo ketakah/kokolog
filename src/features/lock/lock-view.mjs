@@ -7,7 +7,15 @@ function seconds(milliseconds) {
 export async function renderLockView(pinService, options) {
   let recoveryMode = false;
   let submitting = false;
+  let deviceSubmitting = false;
   let countdownTimer = null;
+  const config = await pinService.getConfig();
+  const deviceConfig = config?.deviceAuth?.enabled
+    ? config.deviceAuth
+    : null;
+  const deviceAvailability = deviceConfig && options.deviceAuth
+    ? await options.deviceAuth.getAvailability()
+    : null;
   const screen = element('main', { className: 'lock-screen' });
   const mark = element('div', {
     className: 'app-mark',
@@ -16,7 +24,9 @@ export async function renderLockView(pinService, options) {
   });
   const title = element('h1', { text: 'ここログはロックされています' });
   const description = element('p', {
-    text: '6桁のPINを入力してください',
+    text: deviceConfig
+      ? '端末認証または6桁のPINで解除してください'
+      : '6桁のPINを入力してください',
   });
   const input = element('input', {
     className: 'field lock-input',
@@ -40,6 +50,35 @@ export async function renderLockView(pinService, options) {
     className: 'lock-note',
     text: 'このロックは覗き見防止です。保存データ自体を暗号化する機能ではありません。',
   });
+  const deviceButton = deviceConfig
+    ? button('端末認証で解除', {
+        className: 'lock-device-submit',
+      })
+    : null;
+  const deviceStatus = deviceConfig
+    ? element('p', {
+        className: 'lock-device-status',
+        text: deviceAvailability?.message || '',
+      })
+    : null;
+  const deviceGroup = deviceConfig
+    ? element('section', {
+        className: 'lock-device-group',
+        attributes: { 'aria-label': '端末認証' },
+      }, [
+        deviceButton,
+        deviceStatus,
+        element('div', {
+          className: 'lock-separator',
+          attributes: { 'aria-hidden': 'true' },
+        }, [
+          element('span', { text: 'またはPIN' }),
+        ]),
+      ])
+    : null;
+  if (deviceButton && !deviceAvailability?.available) {
+    deviceButton.disabled = true;
+  }
 
   function setLockedWait(waitMs) {
     if (countdownTimer) {
@@ -66,7 +105,7 @@ export async function renderLockView(pinService, options) {
   }
 
   async function verify() {
-    if (submitting) {
+    if (submitting || deviceSubmitting) {
       return;
     }
     submitting = true;
@@ -103,7 +142,40 @@ export async function renderLockView(pinService, options) {
     }
   }
 
+  async function verifyDevice() {
+    if (
+      submitting ||
+      deviceSubmitting ||
+      !deviceAvailability?.available ||
+      !options.deviceAuth
+    ) {
+      return;
+    }
+    deviceSubmitting = true;
+    deviceButton.disabled = true;
+    submit.disabled = true;
+    input.disabled = true;
+    deviceStatus.textContent = 'iPhoneで本人確認してください…';
+    status.textContent = '';
+    try {
+      await options.deviceAuth.authenticate();
+      deviceStatus.textContent = '端末認証でロックを解除しました。';
+      options.onUnlock();
+    } catch (error) {
+      deviceStatus.textContent = `${error.message} PINでも解除できます。`;
+      if (!countdownTimer) {
+        input.disabled = false;
+        submit.disabled = false;
+      }
+      deviceButton.disabled = false;
+      deviceButton.focus();
+    } finally {
+      deviceSubmitting = false;
+    }
+  }
+
   submit.addEventListener('click', verify);
+  deviceButton?.addEventListener('click', verifyDevice);
   input.addEventListener('input', () => {
     if (!recoveryMode) {
       input.value = input.value.replace(/\D/gu, '').slice(0, 6);
@@ -130,15 +202,23 @@ export async function renderLockView(pinService, options) {
     );
     description.textContent = recoveryMode
       ? '保存しておいた復旧コードを入力してください'
-      : '6桁のPINを入力してください';
+      : deviceConfig
+        ? '端末認証または6桁のPINで解除してください'
+        : '6桁のPINを入力してください';
     submit.textContent = recoveryMode ? '復旧コードで解除' : 'ロック解除';
     switchMode.textContent = recoveryMode ? 'PIN入力へ戻る' : 'PINを忘れた場合';
+    if (deviceGroup) {
+      deviceGroup.hidden = recoveryMode;
+    }
     status.textContent = '';
     input.focus();
   });
 
-  screen.append(mark, title, description, input, status, submit, switchMode, note);
-  const config = await pinService.getConfig();
+  screen.append(mark, title, description);
+  if (deviceGroup) {
+    screen.append(deviceGroup);
+  }
+  screen.append(input, status, submit, switchMode, note);
   if (config?.lockedUntil && Date.parse(config.lockedUntil) > Date.now()) {
     setLockedWait(Date.parse(config.lockedUntil) - Date.now());
   }
@@ -146,7 +226,9 @@ export async function renderLockView(pinService, options) {
   return {
     element: screen,
     afterRender() {
-      if (!input.disabled) {
+      if (deviceButton && !deviceButton.disabled) {
+        deviceButton.focus();
+      } else if (!input.disabled) {
         input.focus();
       }
     },

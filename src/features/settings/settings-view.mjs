@@ -450,9 +450,15 @@ export async function renderSettingsView(context) {
         () => context.router.navigate('/settings/theme'),
       ),
       createSettingRow(
-        'PINロック',
+        'PIN・端末認証',
         '覗き見防止。本文は暗号化されません',
-        `${pinConfig ? 'オン' : 'オフ'}　›`,
+        `${
+          pinConfig?.deviceAuth?.enabled
+            ? '両方オン'
+            : pinConfig
+              ? 'PINオン'
+              : 'オフ'
+        }　›`,
         () => context.router.navigate('/settings/pin'),
       ),
     ]),
@@ -559,8 +565,8 @@ export async function renderSettingsView(context) {
     element('section', { className: 'settings-group card' }, [
       createSettingRow(
         '実装状況',
-        '記録・検索・統計・履歴・PIN・オフライン・端末管理',
-        'M10',
+        '記録・検索・統計・履歴・PIN・端末認証・オフライン・端末管理',
+        'M10+',
         null,
         { disabled: true },
       ),

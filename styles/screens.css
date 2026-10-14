@@ -675,13 +675,48 @@
 }
 
 .lock-submit,
-.pin-primary {
+.pin-primary,
+.lock-device-submit {
   min-height: 46px;
   padding: 0 18px;
   border-radius: 0.625rem;
   background: var(--cp-app-accent);
   color: var(--cp-app-accent-fg);
   font-weight: 700;
+}
+
+.lock-device-group {
+  display: grid;
+  width: min(100%, 300px);
+  gap: 7px;
+}
+
+.lock-device-submit {
+  width: 100%;
+}
+
+.lock-device-status,
+.device-auth-status {
+  margin: 0;
+  color: var(--cp-text-muted);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.lock-separator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--cp-text-muted);
+  font-size: 0.68rem;
+}
+
+.lock-separator::before,
+.lock-separator::after {
+  height: 1px;
+  flex: 1;
+  background: var(--cp-border);
+  content: "";
 }
 
 .lock-note {
@@ -700,6 +735,10 @@
 
 .pin-panel {
   padding: 18px;
+}
+
+.pin-panel + .pin-panel {
+  margin-top: 12px;
 }
 
 .pin-panel h2 {
@@ -731,6 +770,20 @@
 .pin-primary {
   width: 100%;
   margin-top: 14px;
+}
+
+.device-auth-meta {
+  margin-bottom: 7px;
+}
+
+.device-auth-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.device-auth-actions .pin-primary {
+  margin-top: 0;
 }
 
 .recovery-code {

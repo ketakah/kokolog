@@ -67,11 +67,19 @@ import {
   clampCalendarDrag,
 } from '../../src/features/calendar/swipe-gesture.mjs';
 import {
+  PinService,
   createPinConfiguration,
   pinConfigurationFingerprint,
   verifyPinConfiguration,
   verifyRecoveryConfiguration,
 } from '../../src/security/pin-service.mjs';
+import {
+  decodeBase64Url,
+  encodeBase64Url,
+  normalizeEs256Signature,
+  validateDeviceRegistration,
+  verifyDeviceAssertion,
+} from '../../src/security/device-auth-service.mjs';
 import { IdleLockController } from '../../src/security/idle-lock-controller.mjs';
 import { edgeSwipeShouldNavigate } from '../../src/ui/edge-swipe-back.mjs';
 
@@ -83,6 +91,54 @@ const tests = [];
 
 function test(name, run) {
   tests.push({ name, run });
+}
+
+function concatTestBytes(...values) {
+  const arrays = values.map((value) =>
+    value instanceof Uint8Array ? value : new Uint8Array(value),
+  );
+  const result = new Uint8Array(
+    arrays.reduce((total, value) => total + value.length, 0),
+  );
+  let offset = 0;
+  for (const value of arrays) {
+    result.set(value, offset);
+    offset += value.length;
+  }
+  return result;
+}
+
+function rawEs256ToDer(rawValue) {
+  const raw = new Uint8Array(rawValue);
+  assert.strictEqual(raw.length, 64);
+  function integer(value) {
+    let start = 0;
+    while (start < value.length - 1 && value[start] === 0) {
+      start += 1;
+    }
+    let bytes = value.slice(start);
+    if ((bytes[0] & 0x80) !== 0) {
+      bytes = concatTestBytes(Uint8Array.of(0), bytes);
+    }
+    return concatTestBytes(Uint8Array.of(0x02, bytes.length), bytes);
+  }
+  const left = integer(raw.slice(0, 32));
+  const right = integer(raw.slice(32));
+  const body = concatTestBytes(left, right);
+  return concatTestBytes(Uint8Array.of(0x30, body.length), body);
+}
+
+async function createAuthenticatorData(rpId, flags = 0x05, signCount = 1) {
+  const rpIdHash = new Uint8Array(
+    await crypto.subtle.digest(
+      'SHA-256',
+      new TextEncoder().encode(rpId),
+    ),
+  );
+  const suffix = new Uint8Array(5);
+  suffix[0] = flags;
+  new DataView(suffix.buffer).setUint32(1, signCount, false);
+  return concatTestBytes(rpIdHash, suffix);
 }
 
 test('display title prefers an explicit title', () => {
@@ -284,6 +340,222 @@ test('PIN verifier rate-limits after five failures', async () => {
   assert.strictEqual(duringLock.success, false);
   assert.strictEqual(duringLock.locked, true);
   assert.strictEqual(duringLock.waitMs, 20000);
+});
+
+test('device authentication verifies registration and ES256 assertion', async () => {
+  const origin = 'https://ketakah.github.io';
+  const rpId = 'ketakah.github.io';
+  const challenge = Uint8Array.from({ length: 32 }, (_, index) => index + 1);
+  const rawId = Uint8Array.from({ length: 16 }, (_, index) => index + 8);
+  const keyPair = await crypto.subtle.generateKey(
+    { name: 'ECDSA', namedCurve: 'P-256' },
+    true,
+    ['sign', 'verify'],
+  );
+  const publicKey = await crypto.subtle.exportKey('spki', keyPair.publicKey);
+  const registrationClientData = new TextEncoder().encode(
+    JSON.stringify({
+      type: 'webauthn.create',
+      challenge: encodeBase64Url(challenge),
+      origin,
+      crossOrigin: false,
+    }),
+  );
+  const registrationAuthenticatorData = await createAuthenticatorData(
+    rpId,
+    0x05,
+    1,
+  );
+  const config = await validateDeviceRegistration({
+    credential: {
+      type: 'public-key',
+      rawId,
+      response: {
+        clientDataJSON: registrationClientData,
+        getAuthenticatorData: () => registrationAuthenticatorData,
+        getPublicKey: () => publicKey,
+        getPublicKeyAlgorithm: () => -7,
+      },
+    },
+    challenge,
+    origin,
+    rpId,
+    now: new Date('2026-10-14T08:00:00.000Z'),
+  });
+  assert.strictEqual(config.credentialId, encodeBase64Url(rawId));
+  assert.deepStrictEqual(
+    decodeBase64Url(config.credentialId),
+    rawId,
+  );
+
+  const assertionChallenge = Uint8Array.from(
+    { length: 32 },
+    (_, index) => 255 - index,
+  );
+  const assertionClientData = new TextEncoder().encode(
+    JSON.stringify({
+      type: 'webauthn.get',
+      challenge: encodeBase64Url(assertionChallenge),
+      origin,
+      crossOrigin: false,
+    }),
+  );
+  const assertionAuthenticatorData = await createAuthenticatorData(
+    rpId,
+    0x05,
+    2,
+  );
+  const clientDataHash = new Uint8Array(
+    await crypto.subtle.digest('SHA-256', assertionClientData),
+  );
+  const rawSignature = new Uint8Array(
+    await crypto.subtle.sign(
+      { name: 'ECDSA', hash: 'SHA-256' },
+      keyPair.privateKey,
+      concatTestBytes(assertionAuthenticatorData, clientDataHash),
+    ),
+  );
+  const derSignature = rawEs256ToDer(rawSignature);
+  assert.deepStrictEqual(normalizeEs256Signature(derSignature), rawSignature);
+  const result = await verifyDeviceAssertion({
+    config,
+    credential: {
+      type: 'public-key',
+      rawId,
+      response: {
+        clientDataJSON: assertionClientData,
+        authenticatorData: assertionAuthenticatorData,
+        signature: derSignature,
+      },
+    },
+    challenge: assertionChallenge,
+    origin,
+  });
+  assert.strictEqual(result.signCount, 2);
+});
+
+test('device authentication rejects wrong origin and missing verification', async () => {
+  const rpId = 'ketakah.github.io';
+  const challenge = new Uint8Array(32);
+  const rawId = new Uint8Array(16);
+  const keyPair = await crypto.subtle.generateKey(
+    { name: 'ECDSA', namedCurve: 'P-256' },
+    true,
+    ['sign', 'verify'],
+  );
+  const publicKey = await crypto.subtle.exportKey('spki', keyPair.publicKey);
+  const clientData = new TextEncoder().encode(
+    JSON.stringify({
+      type: 'webauthn.create',
+      challenge: encodeBase64Url(challenge),
+      origin: 'https://attacker.example',
+      crossOrigin: false,
+    }),
+  );
+  await assert.rejects(
+    () =>
+      validateDeviceRegistration({
+        credential: {
+          type: 'public-key',
+          rawId,
+          response: {
+            clientDataJSON: clientData,
+            getAuthenticatorData: async () =>
+              createAuthenticatorData(rpId, 0x01, 1),
+            getPublicKey: () => publicKey,
+            getPublicKeyAlgorithm: () => -7,
+          },
+        },
+        challenge,
+        origin: 'https://ketakah.github.io',
+        rpId,
+      }),
+    /オリジン/,
+  );
+
+  const correctClientData = new TextEncoder().encode(
+    JSON.stringify({
+      type: 'webauthn.create',
+      challenge: encodeBase64Url(challenge),
+      origin: 'https://ketakah.github.io',
+      crossOrigin: false,
+    }),
+  );
+  const presenceOnlyAuthenticatorData = await createAuthenticatorData(
+    rpId,
+    0x01,
+    1,
+  );
+  await assert.rejects(
+    () =>
+      validateDeviceRegistration({
+        credential: {
+          type: 'public-key',
+          rawId,
+          response: {
+            clientDataJSON: correctClientData,
+            getAuthenticatorData: () => presenceOnlyAuthenticatorData,
+            getPublicKey: () => publicKey,
+            getPublicKeyAlgorithm: () => -7,
+          },
+        },
+        challenge,
+        origin: 'https://ketakah.github.io',
+        rpId,
+      }),
+    /Face ID/,
+  );
+});
+
+test('device authentication configuration follows PIN lifecycle', async () => {
+  const values = new Map();
+  const settings = {
+    async get(key, fallback = null) {
+      return values.has(key) ? values.get(key) : fallback;
+    },
+    async set(key, value) {
+      values.set(key, value);
+      return value;
+    },
+  };
+  const pin = new PinService(settings);
+  const enabled = await pin.enable('123456', {
+    iterations: 1000,
+    now: new Date('2026-10-14T08:00:00.000Z'),
+  });
+  const before = pinConfigurationFingerprint(enabled.config);
+  await pin.setDeviceAuthConfig(
+    {
+      version: 1,
+      enabled: true,
+      credentialId: 'credential-one',
+      publicKeySpki: 'public-key',
+      algorithm: -7,
+      rpId: 'ketakah.github.io',
+      origin: 'https://ketakah.github.io',
+      signCount: 0,
+      createdAt: '2026-10-14T08:01:00.000Z',
+      updatedAt: '2026-10-14T08:01:00.000Z',
+      lastUsedAt: null,
+    },
+    before,
+  );
+  const withDevice = await pin.getConfig();
+  assert.notStrictEqual(
+    pinConfigurationFingerprint(withDevice),
+    before,
+  );
+  assert.strictEqual(
+    pin.getDeviceAuthConfigInMemory().credentialId,
+    'credential-one',
+  );
+
+  const recovered = await pin.recover(enabled.recoveryCode, {
+    now: new Date('2026-10-14T08:02:00.000Z'),
+  });
+  assert.strictEqual(recovered.success, true);
+  assert.strictEqual(await pin.getConfig(), null);
+  assert.strictEqual(pin.getDeviceAuthConfigInMemory(), null);
 });
 
 test('idle lock resets on activity and disables for close-only mode', async () => {

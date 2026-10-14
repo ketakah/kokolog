@@ -190,7 +190,12 @@ export function verifyRecoveryConfiguration(config, code, options = {}) {
 
 export function pinConfigurationFingerprint(config) {
   return config?.enabled
-    ? `${config.version}:${config.pinVerifier}:${config.recoveryVerifier}`
+    ? [
+        config.version,
+        config.pinVerifier,
+        config.recoveryVerifier,
+        config.deviceAuth?.credentialId || '',
+      ].join(':')
     : null;
 }
 
@@ -218,6 +223,21 @@ export class PinService {
 
   getAutoLockMsInMemory() {
     return Number(this.config?.autoLockMs || 0);
+  }
+
+  getConfigInMemory() {
+    return this.config;
+  }
+
+  getDeviceAuthConfigInMemory() {
+    return this.config?.deviceAuth?.enabled
+      ? this.config.deviceAuth
+      : null;
+  }
+
+  async getDeviceAuthConfig() {
+    const config = await this.getConfig();
+    return config?.deviceAuth?.enabled ? config.deviceAuth : null;
   }
 
   async enable(pin, options = {}) {
@@ -284,5 +304,76 @@ export class PinService {
     await this.settings.set(PIN_CONFIG_KEY, updated);
     this.config = updated;
     return updated;
+  }
+
+  async setDeviceAuthConfig(deviceAuth, expectedFingerprint) {
+    const config = await this.getConfig();
+    if (!config) {
+      throw new Error('PINロックが設定されていません。');
+    }
+    if (
+      expectedFingerprint &&
+      pinConfigurationFingerprint(config) !== expectedFingerprint
+    ) {
+      throw new Error(
+        'PIN設定が別の画面で変更されました。もう一度確認してください。',
+      );
+    }
+    const updated = {
+      ...config,
+      deviceAuth,
+      updatedAt: new Date().toISOString(),
+    };
+    await this.settings.set(PIN_CONFIG_KEY, updated);
+    this.config = updated;
+    return deviceAuth;
+  }
+
+  async clearDeviceAuthConfig(expectedFingerprint) {
+    const config = await this.getConfig();
+    if (!config) {
+      throw new Error('PINロックが設定されていません。');
+    }
+    if (
+      expectedFingerprint &&
+      pinConfigurationFingerprint(config) !== expectedFingerprint
+    ) {
+      throw new Error(
+        'PIN設定が別の画面で変更されました。もう一度確認してください。',
+      );
+    }
+    const updated = {
+      ...config,
+      deviceAuth: null,
+      updatedAt: new Date().toISOString(),
+    };
+    await this.settings.set(PIN_CONFIG_KEY, updated);
+    this.config = updated;
+  }
+
+  async recordDeviceAuthUse(credentialId, signCount, now = new Date()) {
+    const config = await this.getConfig();
+    if (!config?.deviceAuth?.enabled) {
+      throw new Error('端末認証の設定が見つかりません。');
+    }
+    if (config.deviceAuth.credentialId !== credentialId) {
+      throw new Error(
+        '端末認証の設定が別の画面で変更されました。PINで解除してください。',
+      );
+    }
+    const timestamp = now.toISOString();
+    const updated = {
+      ...config,
+      deviceAuth: {
+        ...config.deviceAuth,
+        signCount: Number(signCount || 0),
+        lastUsedAt: timestamp,
+        updatedAt: timestamp,
+      },
+      updatedAt: timestamp,
+    };
+    await this.settings.set(PIN_CONFIG_KEY, updated);
+    this.config = updated;
+    return updated.deviceAuth;
   }
 }

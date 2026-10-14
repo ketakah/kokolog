@@ -101,6 +101,33 @@ CRITICALはなかった。M10で検出したHIGH 2件を修正し、同じ手順
 
 「のみログ」とここログの両方が本人管理、外部ランタイム依存なし、厳格なCSPあり、個人利用中心であるため、運用の単純さを優先して `https://ketakah.github.io/kokolog/` を許容する。外部スクリプト導入、不特定多数への提供、管理主体の分離が生じた場合は専用オリジンへ移す。
 
+WebAuthnのRP IDも`ketakah.github.io`であり、`/kokolog/`というパスは認証境界にならない。端末認証はCredential IDを明示して呼び出すが、同一オリジンの別アプリから技術的に完全分離されるものではない。現在のリスク受容条件を端末認証にも適用する。
+
+## 4.1 WebAuthn端末認証
+
+### 実装
+
+- PINを基礎認証として維持し、端末認証は任意の簡単解除手段とする
+- `authenticatorAttachment = "platform"`
+- `userVerification = "required"`
+- 登録・認証とも利用者の明示クリックから開始する
+- 認証時は保存済みCredential IDを`allowCredentials`へ指定し、`transports = ["internal"]`とする
+- ES256だけを許可する
+- client dataのtype、ランダムチャレンジ、完全一致origin、cross-originフラグを検証する
+- authenticator dataのRP ID hash、UP、UV、署名カウンターを検証する
+- 保存済みSPKI公開鍵で署名を端末内検証する
+- 登録、再登録、解除にはPIN再確認を要求する
+- PIN無効化、復旧コード解除、全削除時は設定を同時に削除する
+- Credential IDと公開鍵を完全JSONへ含めない
+
+### 境界
+
+- 生体情報そのものは取得しない
+- Face IDだけに固定せず、OSがTouch IDまたは端末パスコードを選ぶ場合がある
+- ここログ側の解除ではOSのパスワード管理に残った認証情報を削除できない場合がある
+- ローカル検証であり、外部サーバーに支えられたアカウント認証ではない
+- IndexedDB本文は暗号化されず、同一オリジンの信頼されていないスクリプトや開発者ツールへの防御ではない
+
 ## 5. バックグラウンド時のプライバシー画面
 
 ### 修正

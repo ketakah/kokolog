@@ -23,6 +23,7 @@ import { cancelDeletionPreparation } from './pwa/service-worker.mjs';
 import { button, element } from './ui/dom.mjs';
 import { showToast } from './ui/toast.mjs';
 import { PinService } from './security/pin-service.mjs';
+import { DeviceAuthService } from './security/device-auth-service.mjs';
 import { IdleLockController } from './security/idle-lock-controller.mjs';
 
 const root = document.getElementById('app');
@@ -30,6 +31,7 @@ const privacyCover = document.getElementById('privacy-cover');
 const state = createAppState();
 let services = null;
 let pinService = null;
+let deviceAuthService = null;
 let themeManager = null;
 let currentCleanup = null;
 let currentBeforeAppUpdate = null;
@@ -186,6 +188,7 @@ async function lockApp() {
     routerStarted = false;
   }
   const view = await renderLockView(pinService, {
+    deviceAuth: deviceAuthService,
     onUnlock: () => startRouter(),
   });
   replaceRoot(view.element);
@@ -200,6 +203,7 @@ function createContext() {
     state,
     router,
     pin: pinService,
+    deviceAuth: deviceAuthService,
     theme: themeManager,
     lock: {
       lockNow: () => lockApp(),
@@ -363,6 +367,7 @@ async function start() {
     const result = await createDataServices();
     services = result;
     pinService = new PinService(result.settings);
+    deviceAuthService = new DeviceAuthService(pinService);
     themeManager = new ThemeManager(result.settings);
     await themeManager.initialize();
     if (await pinService.isEnabled()) {
