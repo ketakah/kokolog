@@ -82,6 +82,7 @@ import {
 } from '../../src/security/device-auth-service.mjs';
 import { IdleLockController } from '../../src/security/idle-lock-controller.mjs';
 import { edgeSwipeShouldNavigate } from '../../src/ui/edge-swipe-back.mjs';
+import { scrollPageToTop } from '../../src/ui/layout.mjs';
 
 if (!globalThis.crypto) {
   globalThis.crypto = webcrypto;
@@ -746,6 +747,28 @@ test('edge swipe back requires a deliberate rightward gesture', () => {
     }),
     false,
   );
+});
+
+test('timeline tab scroll uses smooth motion unless reduced', () => {
+  const calls = [];
+  const target = {
+    matchMedia: () => ({ matches: false }),
+    scrollTo: (options) => calls.push(options),
+  };
+  assert.strictEqual(scrollPageToTop(target), 'smooth');
+  assert.deepStrictEqual(calls.pop(), {
+    top: 0,
+    left: 0,
+    behavior: 'smooth',
+  });
+
+  target.matchMedia = () => ({ matches: true });
+  assert.strictEqual(scrollPageToTop(target), 'auto');
+  assert.deepStrictEqual(calls.pop(), {
+    top: 0,
+    left: 0,
+    behavior: 'auto',
+  });
 });
 
 test('record validation accepts body-only and mood-only records', () => {

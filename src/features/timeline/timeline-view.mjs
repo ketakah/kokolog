@@ -16,6 +16,7 @@ import {
   createBottomTabs,
   createScreen,
   createTopBar,
+  scrollPageToTop,
 } from '../../ui/layout.mjs';
 import { showToast } from '../../ui/toast.mjs';
 import { createTimelineSearchEngine } from './search-engine.mjs';
@@ -721,7 +722,17 @@ export async function renderTimelineView(context) {
       className: 'primary-floating',
       on: { click: () => context.router.navigate('/record/new') },
     }),
-    createBottomTabs('timeline', (path) => context.router.navigate(path)),
+    createBottomTabs(
+      'timeline',
+      (path) => context.router.navigate(path),
+      {
+        activeLabel: 'タイムライン、先頭へ戻る',
+        onReselect: () => {
+          context.state.timelineScrollY = 0;
+          scrollPageToTop();
+        },
+      },
+    ),
   );
   await runSearch();
   if (searchEngine.warning) {

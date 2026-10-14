@@ -39,20 +39,41 @@ export function createTopBar(options) {
   return element('header', { className: 'top-bar' }, [left, title, right]);
 }
 
-export function createBottomTabs(activeRoute, navigate) {
+export function scrollPageToTop(target = globalThis) {
+  const reduceMotion = Boolean(
+    target.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
+  );
+  const behavior = reduceMotion ? 'auto' : 'smooth';
+  target.scrollTo({ top: 0, left: 0, behavior });
+  return behavior;
+}
+
+export function createBottomTabs(activeRoute, navigate, options = {}) {
   const navigation = element('nav', {
     className: 'bottom-tabs',
     attributes: { 'aria-label': '主要画面' },
   });
 
   for (const tab of TABS) {
+    const active = activeRoute === tab.route;
     const tabButton = button('', {
       className: 'tab-button',
       attributes: {
-        'aria-label': tab.label,
-        ...(activeRoute === tab.route ? { 'aria-current': 'page' } : {}),
+        'aria-label':
+          active && options.activeLabel
+            ? options.activeLabel
+            : tab.label,
+        ...(active ? { 'aria-current': 'page' } : {}),
       },
-      on: { click: () => navigate(tab.path) },
+      on: {
+        click: () => {
+          if (active && options.onReselect) {
+            options.onReselect(tab.route);
+            return;
+          }
+          navigate(tab.path);
+        },
+      },
     });
     tabButton.append(
       NAV_ICONS[tab.route](),
