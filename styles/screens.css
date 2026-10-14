@@ -955,6 +955,32 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
+  transform: translate3d(var(--month-picker-drag-x, 0px), 0, 0);
+  will-change: transform;
+}
+
+.month-picker-grid.is-settling {
+  transition: transform 180ms cubic-bezier(0.22, 0.75, 0.25, 1);
+}
+
+.month-picker-year-viewport {
+  overflow: hidden;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.month-picker-year-button {
+  display: grid;
+  min-width: 52px;
+  min-height: 52px;
+  place-items: center;
+  padding: 0;
+  border-radius: 0.625rem;
+  background: transparent;
+  color: var(--cp-app-accent-text);
+  font-size: 1.85rem;
+  font-weight: 500;
+  line-height: 1;
 }
 
 .month-picker-button {

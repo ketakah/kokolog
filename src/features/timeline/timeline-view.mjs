@@ -84,7 +84,12 @@ export function createRecordCard(record, tagsById, context, options = {}) {
       'aria-label': `${displayTitle}の詳細を開く`,
     },
     on: {
-      click: () => context.router.navigate(`/record/${encodeURIComponent(record.id)}`),
+      click: () => {
+        if (options.rememberScroll) {
+          context.state.timelineScrollY = globalThis.scrollY;
+        }
+        context.router.navigate(`/record/${encodeURIComponent(record.id)}`);
+      },
     },
   });
 
@@ -179,7 +184,10 @@ export async function renderTimelineView(context) {
   const recordsById = new Map(records.map((record) => [record.id, record]));
   const searchEngine = await createTimelineSearchEngine(records);
   let currentResults = [];
-  let visibleLimit = INITIAL_VISIBLE_RECORDS;
+  let visibleLimit = Math.max(
+    INITIAL_VISIBLE_RECORDS,
+    Number(context.state.timelineVisibleLimit) || INITIAL_VISIBLE_RECORDS,
+  );
   let searchTimer = null;
   let searchSequence = 0;
   let isComposing = false;
@@ -351,6 +359,7 @@ export async function renderTimelineView(context) {
         section.append(
           createRecordCard(record, tagsById, context, {
             query: context.state.timelineQuery,
+            rememberScroll: true,
           }),
         );
       }
@@ -363,6 +372,7 @@ export async function renderTimelineView(context) {
           on: {
             click: () => {
               visibleLimit += INITIAL_VISIBLE_RECORDS;
+              context.state.timelineVisibleLimit = visibleLimit;
               renderResults(durationMs);
             },
           },
@@ -375,6 +385,7 @@ export async function renderTimelineView(context) {
     const sequence = ++searchSequence;
     if (options.resetLimit !== false) {
       visibleLimit = INITIAL_VISIBLE_RECORDS;
+      context.state.timelineVisibleLimit = visibleLimit;
     }
     resultStatus.textContent = '検索中…';
     try {
@@ -635,7 +646,7 @@ export async function renderTimelineView(context) {
       };
       closeFilterSheet();
       renderActiveFilters();
-      await runSearch();
+      await runSearch({ resetLimit: false });
     });
 
     const resetButton = button('条件をすべてリセット', {
@@ -719,7 +730,19 @@ export async function renderTimelineView(context) {
 
   return {
     element: screen,
+    afterRender() {
+      const savedScrollY = Number(context.state.timelineScrollY) || 0;
+      if (savedScrollY <= 0) {
+        return;
+      }
+      requestAnimationFrame(() => {
+        globalThis.scrollTo(0, savedScrollY);
+        requestAnimationFrame(() => globalThis.scrollTo(0, savedScrollY));
+      });
+    },
     cleanup() {
+      context.state.timelineScrollY = globalThis.scrollY;
+      context.state.timelineVisibleLimit = visibleLimit;
       if (searchTimer) {
         clearTimeout(searchTimer);
       }

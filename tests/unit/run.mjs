@@ -73,6 +73,7 @@ import {
   verifyRecoveryConfiguration,
 } from '../../src/security/pin-service.mjs';
 import { IdleLockController } from '../../src/security/idle-lock-controller.mjs';
+import { edgeSwipeShouldNavigate } from '../../src/ui/edge-swipe-back.mjs';
 
 if (!globalThis.crypto) {
   globalThis.crypto = webcrypto;
@@ -434,6 +435,45 @@ test('calendar swipe follows horizontal intent and threshold', () => {
   );
   assert.strictEqual(clampCalendarDrag(-500, 390), -390);
   assert.strictEqual(clampCalendarDrag(500, 390), 390);
+});
+
+test('edge swipe back requires a deliberate rightward gesture', () => {
+  assert.strictEqual(
+    edgeSwipeShouldNavigate({
+      deltaX: 120,
+      deltaY: 8,
+      elapsedMs: 300,
+      viewportWidth: 390,
+    }),
+    true,
+  );
+  assert.strictEqual(
+    edgeSwipeShouldNavigate({
+      deltaX: 40,
+      deltaY: 2,
+      elapsedMs: 50,
+      viewportWidth: 390,
+    }),
+    true,
+  );
+  assert.strictEqual(
+    edgeSwipeShouldNavigate({
+      deltaX: 50,
+      deltaY: 45,
+      elapsedMs: 100,
+      viewportWidth: 390,
+    }),
+    false,
+  );
+  assert.strictEqual(
+    edgeSwipeShouldNavigate({
+      deltaX: -120,
+      deltaY: 0,
+      elapsedMs: 100,
+      viewportWidth: 390,
+    }),
+    false,
+  );
 });
 
 test('record validation accepts body-only and mood-only records', () => {

@@ -5,6 +5,7 @@ import { button, element } from '../../ui/dom.mjs';
 import { createMoodIcon, createStarText } from '../../ui/icons.mjs';
 import { createScreen, createTopBar } from '../../ui/layout.mjs';
 import { showToast } from '../../ui/toast.mjs';
+import { attachEdgeSwipeBack } from '../../ui/edge-swipe-back.mjs';
 
 export async function renderDetailView(context, recordId) {
   const [record, tags, revisions] = await Promise.all([
@@ -17,12 +18,14 @@ export async function renderDetailView(context, recordId) {
   }
   const tagsById = new Map(tags.map((tag) => [tag.id, tag]));
   const screen = createScreen();
+  const goBack = () =>
+    context.router.navigate('/timeline', { replace: true });
   screen.append(
     createTopBar({
       title: '記録',
       left: {
         label: '‹ 戻る',
-        onClick: () => context.router.navigate('/timeline', { replace: true }),
+        onClick: goBack,
       },
       right: {
         label: '編集',
@@ -133,5 +136,9 @@ export async function renderDetailView(context, recordId) {
     ]),
   );
   screen.append(content);
-  return { element: screen };
+  const detachEdgeSwipe = attachEdgeSwipeBack(screen, goBack);
+  return {
+    element: screen,
+    cleanup: detachEdgeSwipe,
+  };
 }

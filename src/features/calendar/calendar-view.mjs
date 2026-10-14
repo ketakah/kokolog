@@ -90,6 +90,8 @@ export async function renderCalendarView(context, query) {
   function openMonthSheet() {
     closeMonthSheet();
     let selectedYear = parseYearMonth(month).year;
+    let suppressMonthClickUntil = 0;
+    let yearGesture = null;
     const backdrop = element('div', {
       className: 'sheet-backdrop',
       on: { click: closeMonthSheet },
@@ -124,6 +126,9 @@ export async function renderCalendarView(context, query) {
             },
             on: {
               click: () => {
+                if (Date.now() < suppressMonthClickUntil) {
+                  return;
+                }
                 closeMonthSheet();
                 context.router.navigate(`/calendar?month=${value}`);
               },
@@ -135,7 +140,7 @@ export async function renderCalendarView(context, query) {
 
     const header = element('header', { className: 'sheet-header' }, [
       button('‹', {
-        className: 'top-bar-action',
+        className: 'month-picker-year-button',
         attributes: { 'aria-label': '前の年' },
         on: {
           click: () => {
@@ -146,7 +151,7 @@ export async function renderCalendarView(context, query) {
       }),
       title,
       button('›', {
-        className: 'top-bar-action',
+        className: 'month-picker-year-button',
         attributes: { 'aria-label': '次の年' },
         on: {
           click: () => {
@@ -156,6 +161,97 @@ export async function renderCalendarView(context, query) {
         },
       }),
     ]);
+    const yearViewport = element('div', {
+      className: 'month-picker-year-viewport',
+    }, [months]);
+
+    function setYearDragOffset(offset, settling = false) {
+      months.classList.toggle('is-settling', settling);
+      months.style.setProperty('--month-picker-drag-x', `${offset}px`);
+    }
+
+    function settleYear(direction) {
+      const width = yearViewport.getBoundingClientRect().width;
+      const target =
+        direction === 1 ? -width : direction === -1 ? width : 0;
+      setYearDragOffset(target, true);
+      if (direction === 0) {
+        setTimeout(() => setYearDragOffset(0, false), 180);
+        return;
+      }
+      suppressMonthClickUntil = Date.now() + 500;
+      setTimeout(() => {
+        selectedYear += direction;
+        renderMonths();
+        setYearDragOffset(direction === 1 ? width : -width, false);
+        requestAnimationFrame(() => {
+          setYearDragOffset(0, true);
+          setTimeout(() => setYearDragOffset(0, false), 180);
+        });
+      }, 180);
+    }
+
+    yearViewport.addEventListener('pointerdown', (event) => {
+      if (!event.isPrimary || event.button !== 0) {
+        return;
+      }
+      yearGesture = {
+        id: event.pointerId,
+        x: event.clientX,
+        y: event.clientY,
+        lastX: event.clientX,
+        lastY: event.clientY,
+        startedAt: performance.now(),
+        axis: null,
+      };
+      yearViewport.setPointerCapture?.(event.pointerId);
+      setYearDragOffset(0, false);
+    });
+    yearViewport.addEventListener('pointermove', (event) => {
+      if (!yearGesture || yearGesture.id !== event.pointerId) {
+        return;
+      }
+      yearGesture.lastX = event.clientX;
+      yearGesture.lastY = event.clientY;
+      const deltaX = event.clientX - yearGesture.x;
+      const deltaY = event.clientY - yearGesture.y;
+      if (!yearGesture.axis) {
+        yearGesture.axis = calendarSwipeAxis(deltaX, deltaY);
+      }
+      if (yearGesture.axis !== 'horizontal') {
+        return;
+      }
+      event.preventDefault();
+      suppressMonthClickUntil = Date.now() + 400;
+      setYearDragOffset(
+        clampCalendarDrag(
+          deltaX,
+          yearViewport.getBoundingClientRect().width,
+        ),
+      );
+    });
+    yearViewport.addEventListener('pointerup', (event) => {
+      if (!yearGesture || yearGesture.id !== event.pointerId) {
+        yearGesture = null;
+        return;
+      }
+      const currentGesture = yearGesture;
+      yearGesture = null;
+      yearViewport.releasePointerCapture?.(event.pointerId);
+      settleYear(
+        calendarSwipeDirection({
+          deltaX: currentGesture.lastX - currentGesture.x,
+          deltaY: currentGesture.lastY - currentGesture.y,
+          elapsedMs: performance.now() - currentGesture.startedAt,
+          viewportWidth: yearViewport.getBoundingClientRect().width,
+        }),
+      );
+    });
+    yearViewport.addEventListener('pointercancel', () => {
+      yearGesture = null;
+      settleYear(0);
+    });
+
     const actions = element('div', { className: 'month-picker-actions' }, [
       button('閉じる', {
         className: 'detail-action',
@@ -171,7 +267,10 @@ export async function renderCalendarView(context, query) {
         },
       }),
     ]);
-    const body = element('div', { className: 'sheet-body' }, [months, actions]);
+    const body = element('div', { className: 'sheet-body' }, [
+      yearViewport,
+      actions,
+    ]);
     renderMonths();
     sheet.append(
       element('div', {

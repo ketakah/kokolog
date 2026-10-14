@@ -13,6 +13,17 @@
   padding-bottom: calc(var(--cp-tab-height) + var(--cp-safe-bottom));
 }
 
+.edge-swipe-surface {
+  --edge-swipe-x: 0px;
+  transform: translate3d(var(--edge-swipe-x), 0, 0);
+  touch-action: pan-y;
+  will-change: transform;
+}
+
+.edge-swipe-surface.is-settling {
+  transition: transform 180ms cubic-bezier(0.22, 0.75, 0.25, 1);
+}
+
 .top-bar {
   position: sticky;
   top: 0;

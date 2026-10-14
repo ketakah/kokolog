@@ -5,5 +5,7 @@ export function createAppState() {
     timelineDirection: 'desc',
     timelineQuery: '',
     timelineFilters: createDefaultTimelineFilters(),
+    timelineScrollY: 0,
+    timelineVisibleLimit: 100,
   };
 }
