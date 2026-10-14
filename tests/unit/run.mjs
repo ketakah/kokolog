@@ -81,7 +81,7 @@ import {
   verifyDeviceAssertion,
 } from '../../src/security/device-auth-service.mjs';
 import { IdleLockController } from '../../src/security/idle-lock-controller.mjs';
-import { edgeSwipeShouldNavigate } from '../../src/ui/edge-swipe-back.mjs';
+import { swipeBackShouldNavigate } from '../../src/ui/edge-swipe-back.mjs';
 import { scrollPageToTop } from '../../src/ui/layout.mjs';
 
 if (!globalThis.crypto) {
@@ -710,9 +710,9 @@ test('calendar swipe follows horizontal intent and threshold', () => {
   assert.strictEqual(clampCalendarDrag(500, 390), 390);
 });
 
-test('edge swipe back requires a deliberate rightward gesture', () => {
+test('screen swipe back requires a deliberate rightward gesture', () => {
   assert.strictEqual(
-    edgeSwipeShouldNavigate({
+    swipeBackShouldNavigate({
       deltaX: 120,
       deltaY: 8,
       elapsedMs: 300,
@@ -721,7 +721,7 @@ test('edge swipe back requires a deliberate rightward gesture', () => {
     true,
   );
   assert.strictEqual(
-    edgeSwipeShouldNavigate({
+    swipeBackShouldNavigate({
       deltaX: 40,
       deltaY: 2,
       elapsedMs: 50,
@@ -730,7 +730,7 @@ test('edge swipe back requires a deliberate rightward gesture', () => {
     true,
   );
   assert.strictEqual(
-    edgeSwipeShouldNavigate({
+    swipeBackShouldNavigate({
       deltaX: 50,
       deltaY: 45,
       elapsedMs: 100,
@@ -739,7 +739,7 @@ test('edge swipe back requires a deliberate rightward gesture', () => {
     false,
   );
   assert.strictEqual(
-    edgeSwipeShouldNavigate({
+    swipeBackShouldNavigate({
       deltaX: -120,
       deltaY: 0,
       elapsedMs: 100,

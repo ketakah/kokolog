@@ -5,7 +5,7 @@ import { button, element } from '../../ui/dom.mjs';
 import { createMoodIcon, createStarText } from '../../ui/icons.mjs';
 import { createScreen, createTopBar } from '../../ui/layout.mjs';
 import { showToast } from '../../ui/toast.mjs';
-import { attachEdgeSwipeBack } from '../../ui/edge-swipe-back.mjs';
+import { attachSwipeBack } from '../../ui/edge-swipe-back.mjs';
 
 export async function renderDetailView(context, recordId) {
   const [record, tags, revisions] = await Promise.all([
@@ -136,9 +136,9 @@ export async function renderDetailView(context, recordId) {
     ]),
   );
   screen.append(content);
-  const detachEdgeSwipe = attachEdgeSwipeBack(screen, goBack);
+  const detachSwipe = attachSwipeBack(screen, goBack);
   return {
     element: screen,
-    cleanup: detachEdgeSwipe,
+    cleanup: detachSwipe,
   };
 }

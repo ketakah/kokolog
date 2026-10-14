@@ -13,10 +13,14 @@
   padding-bottom: calc(var(--cp-tab-height) + var(--cp-safe-bottom));
 }
 
+.swipe-back-enabled {
+  touch-action: pan-y;
+}
+
 .edge-swipe-surface {
   --edge-swipe-x: 0px;
   transform: translate3d(var(--edge-swipe-x), 0, 0);
-  touch-action: pan-y;
+  user-select: none;
   will-change: transform;
 }
 

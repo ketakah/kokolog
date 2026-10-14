@@ -1,8 +1,18 @@
-const EDGE_WIDTH = 44;
 const AXIS_LOCK_DISTANCE = 8;
 const SETTLE_MS = 180;
+const INTERACTIVE_SELECTOR = [
+  'a',
+  'button',
+  'input',
+  'label',
+  'select',
+  'textarea',
+  '[contenteditable="true"]',
+  '[role="button"]',
+  '[role="link"]',
+].join(',');
 
-export function edgeSwipeShouldNavigate({
+export function swipeBackShouldNavigate({
   deltaX,
   deltaY,
   elapsedMs,
@@ -26,9 +36,14 @@ export function edgeSwipeShouldNavigate({
   );
 }
 
-export function attachEdgeSwipeBack(surface, onBack) {
+function startsOnInteractiveElement(target) {
+  return target instanceof Element && Boolean(target.closest(INTERACTIVE_SELECTOR));
+}
+
+export function attachSwipeBack(surface, onBack) {
   let gesture = null;
   let navigating = false;
+  surface.classList.add('swipe-back-enabled');
 
   function setOffset(offset, settling = false) {
     surface.classList.add('edge-swipe-surface');
@@ -45,7 +60,7 @@ export function attachEdgeSwipeBack(surface, onBack) {
     if (
       !event.isPrimary ||
       event.button !== 0 ||
-      event.clientX > EDGE_WIDTH ||
+      startsOnInteractiveElement(event.target) ||
       navigating
     ) {
       return;
@@ -57,7 +72,7 @@ export function attachEdgeSwipeBack(surface, onBack) {
       lastX: event.clientX,
       lastY: event.clientY,
       startedAt: performance.now(),
-      horizontal: false,
+      axis: null,
     };
   }
 
@@ -70,16 +85,21 @@ export function attachEdgeSwipeBack(surface, onBack) {
     const deltaX = event.clientX - gesture.startX;
     const deltaY = event.clientY - gesture.startY;
     if (
-      !gesture.horizontal &&
+      gesture.axis === null &&
       Math.max(Math.abs(deltaX), Math.abs(deltaY)) >= AXIS_LOCK_DISTANCE
     ) {
-      gesture.horizontal =
-        deltaX > 0 && Math.abs(deltaX) > Math.abs(deltaY) * 1.15;
-      if (gesture.horizontal) {
+      gesture.axis =
+        deltaX > 0 && Math.abs(deltaX) > Math.abs(deltaY) * 1.15
+          ? 'horizontal'
+          : 'vertical';
+      if (gesture.axis === 'horizontal') {
         surface.setPointerCapture?.(event.pointerId);
+      } else {
+        gesture = null;
+        return;
       }
     }
-    if (!gesture.horizontal) {
+    if (gesture.axis !== 'horizontal') {
       return;
     }
     event.preventDefault();
@@ -104,8 +124,8 @@ export function attachEdgeSwipeBack(surface, onBack) {
       surface.releasePointerCapture(event.pointerId);
     }
     if (
-      !current.horizontal ||
-      !edgeSwipeShouldNavigate({
+      current.axis !== 'horizontal' ||
+      !swipeBackShouldNavigate({
         deltaX: current.lastX - current.startX,
         deltaY: current.lastY - current.startY,
         elapsedMs: performance.now() - current.startedAt,
@@ -121,8 +141,11 @@ export function attachEdgeSwipeBack(surface, onBack) {
   }
 
   function handlePointerCancel() {
+    const horizontal = gesture?.axis === 'horizontal';
     gesture = null;
-    settleBack();
+    if (horizontal) {
+      settleBack();
+    }
   }
 
   surface.addEventListener('pointerdown', handlePointerDown);
@@ -135,6 +158,7 @@ export function attachEdgeSwipeBack(surface, onBack) {
     surface.removeEventListener('pointermove', handlePointerMove);
     surface.removeEventListener('pointerup', handlePointerUp);
     surface.removeEventListener('pointercancel', handlePointerCancel);
+    surface.classList.remove('swipe-back-enabled');
     clearSurface();
   };
 }
